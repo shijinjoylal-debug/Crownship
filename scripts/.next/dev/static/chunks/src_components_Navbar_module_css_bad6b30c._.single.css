@@ -1,0 +1,71 @@
+/* [project]/src/components/Navbar.module.css [app-client] (css) */
+.Navbar-module__cJzEcG__navbar {
+  z-index: 1000;
+  border-bottom: 1px solid #0000;
+  width: 100%;
+  height: 80px;
+  transition: all .3s;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.Navbar-module__cJzEcG__scrolled {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.Navbar-module__cJzEcG__container {
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+}
+
+.Navbar-module__cJzEcG__logo {
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -.03em;
+  background: linear-gradient(to right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.Navbar-module__cJzEcG__links {
+  align-items: center;
+  gap: 32px;
+  display: flex;
+}
+
+.Navbar-module__cJzEcG__link {
+  color: var(--text-secondary);
+  font-size: .95rem;
+  font-weight: 500;
+}
+
+.Navbar-module__cJzEcG__link:hover {
+  color: var(--text-primary);
+}
+
+.Navbar-module__cJzEcG__loginBtn {
+  border: 1px solid var(--glass-border);
+  color: #fff;
+  background: #ffffff0d;
+  border-radius: 50px;
+  padding: 8px 20px;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: all .2s;
+}
+
+.Navbar-module__cJzEcG__loginBtn:hover {
+  background: #ffffff1a;
+  border-color: #fff3;
+}
+
+/*# sourceMappingURL=src_components_Navbar_module_css_bad6b30c._.single.css.map*/

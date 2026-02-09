@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/app/shop/page.module.css"],"sourcesContent":[".page {\r\n    padding-bottom: 80px;\r\n}\r\n\r\n.header {\r\n    padding: 80px 0 60px;\r\n    text-align: center;\r\n}\r\n\r\n.header h1 {\r\n    font-size: 3.5rem;\r\n    font-weight: 800;\r\n    margin-bottom: 16px;\r\n    letter-spacing: -0.02em;\r\n}\r\n\r\n.subtitle {\r\n    color: var(--text-secondary);\r\n    font-size: 1.2rem;\r\n    max-width: 600px;\r\n    margin: 0 auto;\r\n}"],"names":[],"mappings":"AAAA;;;;AAIA;;;;;AAKA;;;;;;;AAOA"}}]
+}

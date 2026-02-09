@@ -1,0 +1,79 @@
+/* [project]/src/app/login/auth.module.css [app-client] (css) */
+.auth-module__ozYyRa__page {
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  padding: 24px;
+  display: flex;
+}
+
+.auth-module__ozYyRa__container {
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+}
+
+.auth-module__ozYyRa__container h1 {
+  margin-bottom: 8px;
+  font-size: 2rem;
+}
+
+.auth-module__ozYyRa__subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.auth-module__ozYyRa__formGroup {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.auth-module__ozYyRa__formGroup label {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-size: .9rem;
+  display: block;
+}
+
+.auth-module__ozYyRa__formGroup input {
+  border: 1px solid var(--glass-border);
+  color: #fff;
+  background: #0000004d;
+  border-radius: 8px;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.auth-module__ozYyRa__formGroup input:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
+.auth-module__ozYyRa__error {
+  color: #ef4444;
+  background: #ef44441a;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  padding: 12px;
+  font-size: .9rem;
+}
+
+.auth-module__ozYyRa__footer {
+  color: var(--text-secondary);
+  margin-top: 24px;
+  font-size: .9rem;
+}
+
+.auth-module__ozYyRa__footer a {
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-module__ozYyRa__footer a:hover {
+  text-decoration: underline;
+}
+
+/*# sourceMappingURL=src_app_login_auth_module_b65944e6.css.map*/

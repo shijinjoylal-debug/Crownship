@@ -14,12 +14,37 @@ export default function CheckoutPage() {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate payment processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+            // Call our internal API to create a payment invoice
+            const response = await fetch('/api/payment/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: total,
+                    order_description: `Order for ${total} USD`,
+                }),
+            });
 
-        setLoading(false);
-        setSuccess(true);
-        clearCart();
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.details || 'Payment creation failed');
+            }
+
+            if (data.invoice_url) {
+                // Redirect user to NowPayments checkout
+                window.location.href = data.invoice_url;
+            } else {
+                throw new Error('No invoice URL returned from payment provider');
+            }
+
+        } catch (error) {
+            console.error('Checkout error:', error);
+            alert('Payment execution failed. Please check console for details.');
+            setLoading(false);
+        }
     };
 
     if (success) {
