@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import styles from './page.module.css';
-import router, { useRouter } from 'next/router';
 
 
 export default function ShopPage() {
+    const router = useRouter();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
