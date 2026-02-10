@@ -7,17 +7,24 @@ import styles from './page.module.css';
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetch('/api/products')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch products');
+                return res.json();
+            })
             .then(data => {
                 setProducts(data);
                 setLoading(false);
+            })
+            .catch(err => {
+                console.error('Error fetching products:', err);
+                setError('Failed to load products. Please try again later.');
+                setLoading(false);
             });
     }, []);
-
-    if (loading) return <div className="container" style={{ paddingTop: '40px' }}>Loading tools...</div>;
 
     return (
         <div className={styles.page}>
@@ -26,15 +33,36 @@ export default function ShopPage() {
                     <h1 className="gradient-text">Premium Trading Tools</h1>
                     <p className={styles.subtitle}>Equip yourself with the same technology used by institutional traders.</p>
                 </div>
-                <div> <button onClick={() => window.location.href = '/payment-test'}>Test Payment</button></div>
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <button
+                        onClick={() => window.location.href = '/payment-test'}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#0070f3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontSize: '16px'
+                        }}
+                    >
+                        Test Payment
+                    </button>
+                </div>
             </header>
 
             <div className="container">
-                <div className="grid-products">
-                    {products.map(product => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>Loading tools...</div>
+                ) : error ? (
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>{error}</div>
+                ) : (
+                    <div className="grid-products">
+                        {products.map(product => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
