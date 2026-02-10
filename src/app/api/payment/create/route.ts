@@ -4,7 +4,7 @@ import axios from 'axios';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { amount, order_description } = body;
+        const { amount, currency, order_description } = body;
 
         // Use the API key from environment variables
         // If not set, use the provided key as a fallback (though format is suspicious)
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
             'https://api.nowpayments.io/v1/invoice',
             {
                 price_amount: amount,
-                price_currency: 'usd', // Assuming USD for now based on checkout page
+                price_currency: currency || 'usd',
                 order_description: order_description || 'Order Payment',
                 ipn_callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/webhook`, // Optional: for IPN
                 success_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop?payment=success`,

@@ -73,12 +73,12 @@ export default function CheckoutPage() {
 
                         <div className={styles.formGroup}>
                             <label>Full Name</label>
-                            <input type="text" required placeholder="John Doe" />
+                            <input type="text" required placeholder=" full name" />
                         </div>
 
                         <div className={styles.formGroup}>
                             <label>Email Address</label>
-                            <input type="email" required placeholder="john@example.com" />
+                            <input type="email" required placeholder="name@example.com" />
                         </div>
 
                         <div className={styles.formGroup}>
