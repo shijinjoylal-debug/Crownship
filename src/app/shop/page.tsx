@@ -26,6 +26,7 @@ export default function ShopPage() {
                     <h1 className="gradient-text">Premium Trading Tools</h1>
                     <p className={styles.subtitle}>Equip yourself with the same technology used by institutional traders.</p>
                 </div>
+                <div> <button onClick={() => window.location.href = '/payment-test'}>Test Payment</button></div>
             </header>
 
             <div className="container">
