@@ -1,8 +1,11 @@
 "use client";
+
 import { useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import styles from './page.module.css';
+import router, { useRouter } from 'next/router';
+
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -34,20 +37,7 @@ export default function ShopPage() {
                     <p className={styles.subtitle}>Equip yourself with the same technology used by institutional traders.</p>
                 </div>
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <button
-                        onClick={() => window.location.href = '/payment-test'}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#0070f3',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontSize: '16px'
-                        }}
-                    >
-                        Test Payment
-                    </button>
+                    <button onClick={() => router.push('/payment-test')}> Test Payment</button>
                 </div>
             </header>
 
