@@ -1,49 +1,10 @@
 [
   {
     "id": "tool-1",
-    "name": "Quantum Chart Pro",
-    "description": "Advanced charting software with AI-powered pattern recognition.",
-    "price": 299,
-    "image": "/images/chart-pro.jpg",
-    "category": "Software",
-    "features": [
-      "Real-time data",
-      "AI predictions",
-      "Custom indicators"
-    ]
-  },
-  {
-    "id": "tool-2",
-    "name": "Market Flow Sniper",
-    "description": "Detect institutional order flow and trade with the whales.",
-    "price": 149,
-    "image": "/images/flow-sniper.jpg",
-    "category": "Indicator",
-    "features": [
-      "Order block detection",
-      "Volume profile",
-      "Buy/Sell signals"
-    ]
-  },
-  {
-    "id": "tool-3",
-    "name": "Crypto Bot X",
-    "description": "Automated trading bot for crypto markets. 24/7 trading.",
-    "price": 499,
-    "image": "/images/crypto-bot.jpg",
-    "category": "Bot",
-    "features": [
-      "Grid trading",
-      "DCA strategy",
-      "Risk management"
-    ]
-  },
-  {
-    "id": "tool-4",
-    "name": "product1.py telegram bot",
-    "description": "Telegram bot for products.",
+    "name": "Telegram trading bot",
+    "description": "Telegram trading bot for crypto currencies.",
     "price": 16,
-    "image": "/images/telegram-bot.jpg",
+    "image": "/images/trading.png",
     "category": "Bot",
     "features": [
       "Telegram integration",

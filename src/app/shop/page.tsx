@@ -37,9 +37,6 @@ export default function ShopPage() {
                     <h1 className="gradient-text">Premium Trading Tools</h1>
                     <p className={styles.subtitle}>Equip yourself with the same technology used by institutional traders.</p>
                 </div>
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <button onClick={() => router.push('/payment-test')}> Test Payment</button>
-                </div>
             </header>
 
             <div className="container">
