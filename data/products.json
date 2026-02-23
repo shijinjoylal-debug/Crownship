@@ -6,7 +6,11 @@
     "price": 299,
     "image": "/images/chart-pro.jpg",
     "category": "Software",
-    "features": ["Real-time data", "AI predictions", "Custom indicators"]
+    "features": [
+      "Real-time data",
+      "AI predictions",
+      "Custom indicators"
+    ]
   },
   {
     "id": "tool-2",
@@ -15,7 +19,11 @@
     "price": 149,
     "image": "/images/flow-sniper.jpg",
     "category": "Indicator",
-    "features": ["Order block detection", "Volume profile", "Buy/Sell signals"]
+    "features": [
+      "Order block detection",
+      "Volume profile",
+      "Buy/Sell signals"
+    ]
   },
   {
     "id": "tool-3",
@@ -24,6 +32,23 @@
     "price": 499,
     "image": "/images/crypto-bot.jpg",
     "category": "Bot",
-    "features": ["Grid trading", "DCA strategy", "Risk management"]
+    "features": [
+      "Grid trading",
+      "DCA strategy",
+      "Risk management"
+    ]
+  },
+  {
+    "id": "tool-4",
+    "name": "product1.py telegram bot",
+    "description": "Telegram bot for products.",
+    "price": 16,
+    "image": "/images/telegram-bot.jpg",
+    "category": "Bot",
+    "features": [
+      "Telegram integration",
+      "Product management",
+      "Automated"
+    ]
   }
 ]
