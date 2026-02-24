@@ -17,6 +17,11 @@ export async function POST(req: Request) {
             );
         }
 
+        // Calculate base URL, fallback to request origin if NEXT_PUBLIC_APP_URL is missing
+        const reqUrl = new URL(req.url);
+        const origin = `${reqUrl.protocol}//${reqUrl.host}`;
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+
         // Create Invoice request to NowPayments
         const response = await axios.post(
             'https://api.nowpayments.io/v1/invoice',
@@ -24,9 +29,9 @@ export async function POST(req: Request) {
                 price_amount: amount,
                 price_currency: currency || 'usd',
                 order_description: order_description || 'Order Payment',
-                ipn_callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/webhook`, // Optional: for IPN
-                success_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop?payment=success`,
-                cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?payment=cancel`,
+                ipn_callback_url: `${appUrl}/api/payment/webhook`, // Optional: for IPN
+                success_url: `${appUrl}/shop?payment=success`,
+                cancel_url: `${appUrl}/checkout?payment=cancel`,
             },
             {
                 headers: {
