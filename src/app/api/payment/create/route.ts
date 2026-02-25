@@ -7,12 +7,12 @@ export async function POST(req: Request) {
         const { amount, currency, order_description } = body;
 
         // Use the API key from environment variables
-        // If not set, use the provided key as a fallback (though format is suspicious)
         const apiKey = process.env.NOWPAYMENTS_API_KEY;
 
-        if (!apiKey || apiKey === 'REPLACE_WITH_YOUR_ACTUAL_API_KEY') {
+        if (!apiKey) {
+            console.error('Payment Error: NOWPAYMENTS_API_KEY is missing from environment variables.');
             return NextResponse.json(
-                { error: 'Payment configuration error: NOWPAYMENTS_API_KEY is not set.' },
+                { error: 'Payment configuration error: API Key is not configured.' },
                 { status: 500 }
             );
         }
@@ -22,6 +22,8 @@ export async function POST(req: Request) {
         const origin = `${reqUrl.protocol}//${reqUrl.host}`;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
 
+        console.log(`Creating NowPayments invoice for amount: ${amount}, currency: ${currency || 'usd'}`);
+
         // Create Invoice request to NowPayments
         const response = await axios.post(
             'https://api.nowpayments.io/v1/invoice',
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
                 price_amount: amount,
                 price_currency: currency || 'usd',
                 order_description: order_description || 'Order Payment',
-                ipn_callback_url: `${appUrl}/api/payment/webhook`, // Optional: for IPN
+                ipn_callback_url: `${appUrl}/api/payment/webhook`,
                 success_url: `${appUrl}/shop?payment=success`,
                 cancel_url: `${appUrl}/checkout?payment=cancel`,
             },
@@ -44,9 +46,14 @@ export async function POST(req: Request) {
         return NextResponse.json(response.data);
 
     } catch (error: any) {
-        console.error('NowPayments Error:', error.response?.data || error.message);
+        const errorData = error.response?.data || error.message;
+        console.error('NowPayments API Error:', JSON.stringify(errorData, null, 2));
+
         return NextResponse.json(
-            { error: 'Failed to create payment', details: error.response?.data || error.message },
+            {
+                error: 'Failed to create payment',
+                details: typeof errorData === 'object' ? errorData.message || JSON.stringify(errorData) : errorData
+            },
             { status: 500 }
         );
     }

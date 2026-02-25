@@ -9,10 +9,12 @@ export default function CheckoutPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
 
         try {
             // Call our internal API to create a payment invoice
@@ -40,9 +42,9 @@ export default function CheckoutPage() {
                 throw new Error('No invoice URL returned from payment provider');
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Checkout error:', error);
-            alert('Payment execution failed. Please check console for details.');
+            setError(error.message || 'Payment execution failed. Please try again.');
             setLoading(false);
         }
     };
@@ -73,7 +75,7 @@ export default function CheckoutPage() {
 
                         <div className={styles.formGroup}>
                             <label>Full Name</label>
-                            <input type="text" required placeholder=" full name" />
+                            <input type="text" required placeholder="Your full name" />
                         </div>
 
                         <div className={styles.formGroup}>
@@ -81,21 +83,11 @@ export default function CheckoutPage() {
                             <input type="email" required placeholder="name@example.com" />
                         </div>
 
-                        <div className={styles.formGroup}>
-                            <label>Card Number</label>
-                            <input type="text" required placeholder="0000 0000 0000 0000" />
-                        </div>
-
-                        <div className={styles.row}>
-                            <div className={styles.formGroup}>
-                                <label>Expiry</label>
-                                <input type="text" required placeholder="MM/YY" />
+                        {error && (
+                            <div className={styles.errorMessage} style={{ color: '#ff4b4b', marginBottom: '15px', padding: '10px', background: 'rgba(255, 75, 75, 0.1)', borderRadius: '4px' }}>
+                                ⚠️ {error}
                             </div>
-                            <div className={styles.formGroup}>
-                                <label>CVC</label>
-                                <input type="text" required placeholder="123" />
-                            </div>
-                        </div>
+                        )}
 
                         <div className={styles.totalRow}>
                             <span>Total to Pay:</span>
@@ -105,7 +97,7 @@ export default function CheckoutPage() {
                         <button type="submit" disabled={loading} className={styles.payBtn}>
                             {loading ? 'Processing...' : `Pay Now $${total}`}
                         </button>
-                        <p className={styles.secureText}>🔒 128-bit SSL Encrypted Payment</p>
+                        <p className={styles.secureText}>🔒 Secure Crypto Payment via NowPayments</p>
                     </form>
 
                     <div className={styles.sidebar}>
