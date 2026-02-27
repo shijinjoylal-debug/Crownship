@@ -67,3 +67,13 @@
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
 }
+
+.logoutBtn {
+    background-color: rgba(0, 0, 0, 0.783);
+    padding: 5px 20px;
+    color: #fff;
+    text-decoration: solid;
+    font-weight: 100;
+    border: none;
+
+}

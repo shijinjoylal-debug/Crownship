@@ -3,9 +3,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './auth.module.css';
+import { useAuth } from '@/context/AuthContext';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { refreshAuth } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -26,6 +28,7 @@ export default function RegisterPage() {
 
             if (!res.ok) throw new Error((await res.json()).error);
 
+            await refreshAuth();
             router.push('/login');
         } catch (err: any) {
             setError(err.message);

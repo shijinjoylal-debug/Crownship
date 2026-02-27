@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth';
+import { serialize } from 'cookie';
 
 export async function POST(req: Request) {
     try {
@@ -22,7 +24,18 @@ export async function POST(req: Request) {
             passwordHash
         });
 
-        return NextResponse.json({ message: 'User created' }, { status: 201 });
+        const token = signToken(newUser);
+        const cookie = serialize('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24, // 1 day
+            path: '/',
+            sameSite: 'strict',
+        });
+
+        const response = NextResponse.json({ message: 'User created', user: { id: newUser.id, name: newUser.name, email: newUser.email } }, { status: 201 });
+        response.headers.set('Set-Cookie', cookie);
+        return response;
     } catch (error) {
         console.error('Register error:', error);
         return NextResponse.json({ error: 'Internal error' }, { status: 500 });

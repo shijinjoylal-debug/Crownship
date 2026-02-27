@@ -2,9 +2,11 @@
 import Link from "next/link";
 import styles from "./Navbar.module.css";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
+    const { user, logout, loading } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -21,7 +23,17 @@ export default function Navbar() {
                 <div className={styles.links}>
                     <Link href="/shop" className={styles.link}>Marketplace</Link>
                     <Link href="/cart" className={styles.link}>Cart</Link>
-                    <Link href="/login" className={styles.loginBtn}>Login</Link>
+
+                    {!loading && (
+                        user ? (
+                            <div className={styles.userSection}>
+                                <span className={styles.userName}>Hello! {user.name}</span>
+                                <button onClick={logout} className={styles.logoutBtn}>Logout</button>
+                            </div>
+                        ) : (
+                            <Link href="/login" className={styles.loginBtn}>Login</Link>
+                        )
+                    )}
                 </div>
             </div>
         </nav>
