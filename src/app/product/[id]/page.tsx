@@ -62,7 +62,7 @@ export default function ProductDetailPage() {
                     <div className={styles.trustBadges}>
                         <span>🔒 256-bit Secure Checkout</span>
                         <span>🛡️ 30-Day Money Back</span>
-                        <span>⚡ Instant Delivery</span>
+                        <span>⚡ Instant Access</span>
                     </div>
                 </div>
             </div>
