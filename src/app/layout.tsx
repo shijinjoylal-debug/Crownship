@@ -17,8 +17,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
+          <div className="urgency-banner">
+            ⚡ FLASH RUN: 40% OFF ALL TOOLS. ENDS IN 04:15:30.
+          </div>
           <Navbar />
-          <main style={{ minHeight: 'calc(100vh - 80px)', paddingTop: '80px' }}>
+          <main style={{ minHeight: 'calc(100vh - 120px)', paddingTop: '120px' }}>
             {children}
           </main>
         </Providers>

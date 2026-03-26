@@ -54,6 +54,30 @@ export default function CartPage() {
                     <div className={styles.summaryContainer}>
                         <div className={`glass-panel ${styles.summary}`}>
                             <h2>Order Summary</h2>
+                            
+                            {/* Free Support Progress Bar */}
+                            <div className={styles.progressContainer}>
+                                {total < 150 ? (
+                                    <>
+                                        <p className={styles.progressText}>
+                                            You are <strong>${(150 - total).toFixed(2)}</strong> away from <span>Free VIP Support</span>!
+                                        </p>
+                                        <div className={styles.progressBarBg}>
+                                            <div className={styles.progressBarFill} style={{ width: `${Math.min((total / 150) * 100, 100)}%` }}></div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className={styles.progressTextSuccess}>
+                                            🎉 Free VIP Support Unlocked!
+                                        </p>
+                                        <div className={styles.progressBarBg}>
+                                            <div className={styles.progressBarFill} style={{ width: '100%' }}></div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
                             <div className={styles.row}>
                                 <span>Subtotal</span>
                                 <span>${total}</span>
@@ -68,9 +92,14 @@ export default function CartPage() {
                                 <span>${total}</span>
                             </div>
 
-                            <Link href="/checkout" className={styles.checkoutBtn}>
+                            <Link href="/checkout" className={`btn-primary pulse-primary ${styles.checkoutBtn}`}>
                                 Proceed to Checkout
                             </Link>
+
+                            <div className={styles.trustBadges}>
+                                <span>🔒 256-bit Secure Checkout</span>
+                                <span>🛡️ 30-Day Money Back</span>
+                            </div>
 
                             <button onClick={clearCart} className={styles.clearBtn}>
                                 Clear Cart

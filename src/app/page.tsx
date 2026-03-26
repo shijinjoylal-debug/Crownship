@@ -19,12 +19,18 @@ export default function Home() {
               Stop gambling. Start operating.
             </p>
             <div className={styles.actions}>
-              <Link href="/shop" className="btn-primary">
+              <Link href="/shop" className="btn-primary pulse-primary">
                 Explore Tools
               </Link>
               <Link href="/shop" className={styles.secondaryBtn}>
                 View Demo
               </Link>
+            </div>
+
+            <div className={styles.trustBadges}>
+               <span>✔️ Verified Real-Time Data</span>
+               <span>🔒 Bank-Grade Security</span>
+               <span>⭐ 4.9/5 from 12k+ Traders</span>
             </div>
 
             <div className={styles.heroStats}>
@@ -64,6 +70,30 @@ export default function Home() {
             <div className={`glass-panel ${styles.featureCard}`}>
               <h3>Whale Tracking</h3>
               <p>See hidden buy/sell walls before they execute.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className={styles.testimonials}>
+        <div className="container">
+          <h2 className={styles.sectionTitle}>Don't Just Take Our Word For It</h2>
+          <div className={styles.grid}>
+            <div className={`glass-panel ${styles.testimonialCard}`}>
+              <div className={styles.stars}>★★★★★</div>
+              <p>"The latency is incredible. I'm executing trades milliseconds before the rest of the market."</p>
+              <h4>- Sarah J., Pro Trader</h4>
+            </div>
+            <div className={`glass-panel ${styles.testimonialCard}`}>
+              <div className={styles.stars}>★★★★★</div>
+              <p>"The whale tracking feature alone paid for my lifetime access in the first 2 hours."</p>
+              <h4>- Mike T., Crypto Analyst</h4>
+            </div>
+            <div className={`glass-panel ${styles.testimonialCard}`}>
+              <div className={styles.stars}>★★★★★</div>
+              <p>"Finally an institutional-grade tool available for retail. The UI is sharp and exactly what I needed."</p>
+              <h4>- David R., Quant Fund Manager</h4>
             </div>
           </div>
         </div>

@@ -113,6 +113,68 @@
     box-shadow: 0 10px 50px var(--accent-glow);
 }
 
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.rating .stars {
+    color: var(--accent-primary);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.rating .reviews {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.stockUrgency {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 0, 60, 0.1);
+    border: 1px solid rgba(255, 0, 60, 0.3);
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    color: #fff;
+    margin-bottom: 24px;
+}
+
+.pulseDot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-urgency);
+    border-radius: 50%;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 0, 60, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 0, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 0, 60, 0); }
+}
+
+.trustBadges {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.trustBadges span {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
 @media (max-width: 768px) {
     .layout {
         grid-template-columns: 1fr;

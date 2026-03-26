@@ -34,9 +34,18 @@ export default function ProductDetailPage() {
 
                 <div className={styles.infoSection}>
                     <div className={styles.badge}>{product.category}</div>
+                    <div className={styles.rating}>
+                        <span className={styles.stars}>★★★★★</span>
+                        <span className={styles.reviews}>4.9/5 (12,450 Reviews)</span>
+                    </div>
                     <h1 className={styles.title}>{product.name}</h1>
                     <p className={styles.price}>${product.price}</p>
                     <div className={styles.divider} />
+
+                    <div className={styles.stockUrgency}>
+                        <span className={styles.pulseDot}></span>
+                        <span><strong>High Demand:</strong> Only 2 lifetime access licenses remaining.</span>
+                    </div>
 
                     <p className={styles.description}>{product.description}</p>
 
@@ -46,9 +55,15 @@ export default function ProductDetailPage() {
                         ))}
                     </ul>
 
-                    <button onClick={() => addToCart(product)} className={styles.buyBtn}>
-                        Add to Access List — ${product.price}
+                    <button onClick={() => addToCart(product)} className={`btn-primary pulse-primary ${styles.buyBtn}`}>
+                        Secure Access Now — ${product.price}
                     </button>
+
+                    <div className={styles.trustBadges}>
+                        <span>🔒 256-bit Secure Checkout</span>
+                        <span>🛡️ 30-Day Money Back</span>
+                        <span>⚡ Instant Delivery</span>
+                    </div>
                 </div>
             </div>
         </div>
