@@ -1,15 +1,54 @@
 [
   {
     "id": "tool-1",
-    "name": "Telegram trading bot",
-    "description": "Telegram trading bot for crypto currencies.",
+    "name": "Telegram Trading Bot",
+    "description": "High-performance bot integrated with Telegram for seamless crypto updates and trades.",
     "price": 16,
-    "image": "/images/trading.png",
-    "category": "Bot",
+    "image": "/images/trading_bot_telegram_1775328173966.png",
+    "category": "Automation",
     "features": [
       "Telegram integration",
-      "Product management",
-      "Automated"
+      "Real-time alerts",
+      "Easy configuration"
+    ]
+  },
+  {
+    "id": "tool-2",
+    "name": "Arbitrage Bot",
+    "description": "Exploit price differences across multiple exchanges instantly.",
+    "price": 49,
+    "image": "/images/arbitrage_bot_1775328360646.png",
+    "category": "Arbitrage",
+    "features": [
+      "Multi-exchange support",
+      "Low-latency execution",
+      "Profit tracking"
+    ]
+  },
+  {
+    "id": "tool-3",
+    "name": "Market Maker Pro",
+    "description": "Provide liquidity and capture spreads with our advanced market-making algorithm.",
+    "price": 32,
+    "image": "/images/market_maker_bot_1775328362000_1775328384156.png",
+    "category": "Liquidity",
+    "features": [
+      "Spread optimization",
+      "Inventory management",
+      "Flash loan prevention"
+    ]
+  },
+  {
+    "id": "tool-4",
+    "name": "Trend Follower",
+    "description": "Automatically identify and follow market trends with technical analysis indicators.",
+    "price": 24,
+    "image": "/images/trend_follower_bot_1775328386000_1775328402987.png",
+    "category": "Analytics",
+    "features": [
+      "Technical indicators",
+      "RSI/MACD integration",
+      "Risk management"
     ]
   }
 ]
