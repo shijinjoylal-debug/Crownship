@@ -6,7 +6,7 @@ import crypto from 'crypto';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { amount, currency, order_description, name, email } = body;
+        const { amount, items, currency, order_description, name, email } = body;
 
         // Use the API key from environment variables
         const apiKey = process.env.NOWPAYMENTS_API_KEY;
@@ -27,6 +27,8 @@ export async function POST(req: Request) {
             id: orderId,
             name: name || 'Anonymous',
             email: email || 'unknown@example.com',
+            items: items || [],
+            totalAmount: amount,
             status: 'pending'
         });
 

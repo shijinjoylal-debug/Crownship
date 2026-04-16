@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
 
 export default function CheckoutPage() {
-    const { total, clearCart } = useCart();
+    const { items, total, clearCart } = useCart();
     const router = useRouter();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -27,7 +27,12 @@ export default function CheckoutPage() {
                 },
                 body: JSON.stringify({
                     amount: total,
-                    order_description: `Order for ${total} USD`,
+                    items: items.map(i => ({
+                        name: i.name,
+                        price: i.price,
+                        quantity: i.quantity
+                    })),
+                    order_description: `Order for ${items.length} item(s)`,
                     name,
                     email,
                 }),

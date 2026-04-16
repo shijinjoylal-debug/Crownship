@@ -15,11 +15,24 @@ export interface User {
     passwordHash: string;
 }
 
+export interface CartItem {
+    name: string;
+    price: number;
+    quantity: number;
+}
+
 export interface PurchasedUser {
     id: string;
     name: string;
     email: string;
-    status?: 'pending' | 'confirmed';
+    items: CartItem[];
+    totalAmount: number;
+    status?: 'pending' | 'confirmed' | 'failed';
+}
+
+export interface ApprovedUser {
+    id: string;
+    email: string;
 }
 
 

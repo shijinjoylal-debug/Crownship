@@ -2,7 +2,8 @@ import dbConnect from './mongoose';
 import ProductModel from '@/models/Product';
 import UserModel from '@/models/User';
 import PurchasedUserModel from '@/models/PurchasedUser';
-import { Product, User, PurchasedUser } from './types';
+import ApprovedUserModel from '@/models/ApprovedUser';
+import { Product, User, PurchasedUser, ApprovedUser } from './types';
 
 // Ensure connection is established
 dbConnect();
@@ -64,6 +65,11 @@ export const db = {
             const user = await PurchasedUserModel.findOne({ email }).lean();
             return user as PurchasedUser | undefined;
         },
+        getById: async (id: string) => {
+            await dbConnect();
+            const user = await PurchasedUserModel.findOne({ id }).lean();
+            return user as PurchasedUser | undefined;
+        },
         updateStatus: async (id: string, status: 'confirmed' | 'failed') => {
             await dbConnect();
             const user = await PurchasedUserModel.findOneAndUpdate(
@@ -72,6 +78,13 @@ export const db = {
                 { new: true }
             ).lean();
             return user as PurchasedUser | undefined;
+        }
+    },
+    approvedUsers: {
+        getAllEmails: async () => {
+            await dbConnect();
+            const users = await ApprovedUserModel.find({}).lean();
+            return users.map((u: any) => u.email) as string[];
         }
     }
 };
