@@ -7,6 +7,8 @@ import styles from './page.module.css';
 export default function CheckoutPage() {
     const { total, clearCart } = useCart();
     const router = useRouter();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +28,8 @@ export default function CheckoutPage() {
                 body: JSON.stringify({
                     amount: total,
                     order_description: `Order for ${total} USD`,
+                    name,
+                    email,
                 }),
             });
 
@@ -75,12 +79,24 @@ export default function CheckoutPage() {
 
                         <div className={styles.formGroup}>
                             <label>Full Name</label>
-                            <input type="text" required placeholder="Your full name" />
+                            <input 
+                                type="text" 
+                                required 
+                                placeholder="Your full name" 
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
                         </div>
 
                         <div className={styles.formGroup}>
                             <label>Email Address</label>
-                            <input type="email" required placeholder="name@example.com" />
+                            <input 
+                                type="email" 
+                                required 
+                                placeholder="name@example.com" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
 
                         {error && (

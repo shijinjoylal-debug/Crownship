@@ -14,3 +14,12 @@ export interface User {
     email: string;
     passwordHash: string;
 }
+
+export interface PurchasedUser {
+    id: string;
+    name: string;
+    email: string;
+    status?: 'pending' | 'confirmed';
+}
+
+

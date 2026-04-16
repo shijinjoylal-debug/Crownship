@@ -1,7 +1,8 @@
 import dbConnect from './mongoose';
 import ProductModel from '@/models/Product';
 import UserModel from '@/models/User';
-import { Product, User } from './types';
+import PurchasedUserModel from '@/models/PurchasedUser';
+import { Product, User, PurchasedUser } from './types';
 
 // Ensure connection is established
 dbConnect();
@@ -46,5 +47,33 @@ export const db = {
                 id: newUser._id.toString()
             } as User;
         }
+    },
+    purchasedUsers: {
+        create: async (data: PurchasedUser) => {
+            await dbConnect();
+            const newPurchasedUser = await PurchasedUserModel.create(data);
+            return newPurchasedUser.toObject() as PurchasedUser;
+        },
+        getAll: async () => {
+            await dbConnect();
+            const users = await PurchasedUserModel.find({}).lean();
+            return users as PurchasedUser[];
+        },
+        getByEmail: async (email: string) => {
+            await dbConnect();
+            const user = await PurchasedUserModel.findOne({ email }).lean();
+            return user as PurchasedUser | undefined;
+        },
+        updateStatus: async (id: string, status: 'confirmed' | 'failed') => {
+            await dbConnect();
+            const user = await PurchasedUserModel.findOneAndUpdate(
+                { id },
+                { status },
+                { new: true }
+            ).lean();
+            return user as PurchasedUser | undefined;
+        }
     }
 };
+
+
