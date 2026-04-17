@@ -24,6 +24,52 @@
     background-position: center;
     border-radius: var(--radius-md);
     background-color: #1a1a1a;
+    transition: transform 0.3s ease;
+}
+
+.videoContainer {
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.videoTitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.videoTitle::before {
+    content: "▶";
+    color: var(--accent-primary);
+    font-size: 0.9rem;
+}
+
+.productVideo {
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    background: #000;
+}
+
+.videoFallback {
+    padding: 20px;
+    text-align: center;
+    background: rgba(255, 0, 0, 0.05);
+    border: 1px dashed var(--accent-urgency);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+}
+
+.videoFallback a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    margin-left: 5px;
 }
 
 .infoSection {
