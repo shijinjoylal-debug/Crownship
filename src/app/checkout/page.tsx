@@ -1,8 +1,14 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 export default function CheckoutPage() {
     const { items, total, clearCart } = useCart();
@@ -13,13 +19,33 @@ export default function CheckoutPage() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const initializeRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => {
+                resolve(true);
+            };
+            script.onerror = () => {
+                resolve(false);
+            };
+            document.body.appendChild(script);
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         try {
-            // Call our internal API to create a payment invoice
+            // Load razorpay script
+            const res = await initializeRazorpay();
+            if (!res) {
+                throw new Error("Razorpay SDK failed to load. Are you online?");
+            }
+
+            // Call our internal API to create a payment invoice/order
             const response = await fetch('/api/payment/create', {
                 method: 'POST',
                 headers: {
@@ -32,7 +58,6 @@ export default function CheckoutPage() {
                         price: i.price,
                         quantity: i.quantity
                     })),
-                    order_description: `Order for ${items.length} item(s)`,
                     name,
                     email,
                 }),
@@ -44,11 +69,70 @@ export default function CheckoutPage() {
                 throw new Error(data.details || 'Payment creation failed');
             }
 
-            if (data.invoice_url) {
-                // Redirect user to NowPayments checkout
-                window.location.href = data.invoice_url;
+            if (data.id) {
+                // Initialize Razorpay
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: "Crownship",
+                    description: `Order for ${items.length} item(s)`,
+                    order_id: data.id,
+                    handler: async function (response: any) {
+                        try {
+                            setLoading(true);
+                            // Verify payment on our server
+                            const verifyRes = await fetch('/api/payment/verify', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    internalOrderId: data.internalOrderId
+                                })
+                            });
+
+                            const verifyData = await verifyRes.json();
+                            if (verifyRes.ok && verifyData.success) {
+                                clearCart();
+                                setSuccess(true);
+                            } else {
+                                setError('Payment verification failed. Please contact support.');
+                            }
+                            setLoading(false);
+
+                        } catch (err: any) {
+                            setError('Verification request failed.');
+                            setLoading(false);
+                        }
+                    },
+                    prefill: {
+                        name: name,
+                        email: email,
+                    },
+                    theme: {
+                        color: "#3399cc",
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            setLoading(false);
+                            setError("Payment cancelled by user. You can try again.");
+                        }
+                    }
+                };
+
+                const paymentObject = new window.Razorpay(options);
+                paymentObject.on('payment.failed', function (response: any) {
+                    setError(`Payment failed: ${response.error.description}`);
+                    setLoading(false);
+                });
+                paymentObject.open();
+
             } else {
-                throw new Error('No invoice URL returned from payment provider');
+                throw new Error('No order ID returned from payment provider');
             }
 
         } catch (error: any) {
@@ -118,7 +202,7 @@ export default function CheckoutPage() {
                         <button type="submit" disabled={loading} className={styles.payBtn}>
                             {loading ? 'Processing...' : `Pay Now $${total}`}
                         </button>
-                        <p className={styles.secureText}>🔒 Secure Crypto Payment via NowPayments</p>
+                        <p className={styles.secureText}>🔒 Secure Payment via Razorpay</p>
                     </form>
 
                     <div className={styles.sidebar}>

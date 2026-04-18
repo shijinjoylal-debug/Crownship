@@ -1,75 +1,65 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
+import Razorpay from 'razorpay';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { amount, items, currency, order_description, name, email } = body;
+        const { amount, items, currency, name, email } = body;
 
-        // Use the API key from environment variables
-        const apiKey = process.env.NOWPAYMENTS_API_KEY;
+        // Ensure keys are available
+        const key_id = process.env.RAZORPAY_KEY_ID || 'rzp_live_SezY5OFStlhUZS';
+        const key_secret = process.env.RAZORPAY_KEY_SECRET || 'qS4FLeWSvFf5SuI7iTq6eJBA';
 
-        if (!apiKey) {
-            console.error('Payment Error: NOWPAYMENTS_API_KEY is missing from environment variables.');
-            return NextResponse.json(
-                { error: 'Payment configuration error: API Key is not configured.' },
-                { status: 500 }
-            );
-        }
+        const razorpay = new Razorpay({
+            key_id: key_id,
+            key_secret: key_secret,
+        });
 
-        // Generate a unique order ID for tracking
-        const orderId = crypto.randomUUID();
+        // Generate a unique order ID for tracking internally
+        const internalOrderId = crypto.randomUUID();
 
         // Create a pending record in our database
         await db.purchasedUsers.create({
-            id: orderId,
+            id: internalOrderId,
             name: name || 'Anonymous',
             email: email || 'unknown@example.com',
             items: items || [],
-            totalAmount: amount,
+            totalAmount: amount, // Keeping the original format amount for DB consistency
             status: 'pending'
         });
 
-        // Calculate base URL, fallback to request origin if NEXT_PUBLIC_APP_URL is missing
-        const reqUrl = new URL(req.url);
-        const origin = `${reqUrl.protocol}//${reqUrl.host}`;
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+        console.log(`Creating Razorpay order for amount: $${amount}, currency: USD, internal_order_id: ${internalOrderId}`);
 
-        console.log(`Creating NowPayments invoice for amount: ${amount}, currency: ${currency || 'usd'}, order_id: ${orderId}`);
+        // Razorpay expects amount in smallest currency unit (cents for USD)
+        // Convert the decimal amount to integer cents
+        const amountInCents = Math.round(Number(amount) * 100);
 
-        // Create Invoice request to NowPayments
-        const response = await axios.post(
-            'https://api.nowpayments.io/v1/invoice',
-            {
-                price_amount: amount,
-                price_currency: currency || 'usd',
-                order_description: order_description || 'Order Payment',
-                order_id: orderId, // This will be sent back in the webhook
-                ipn_callback_url: `${appUrl}/api/payment/webhook`,
-                success_url: `${appUrl}/shop?payment=success`,
-                cancel_url: `${appUrl}/checkout?payment=cancel`,
-            },
-            {
-                headers: {
-                    'x-api-key': apiKey,
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        const options = {
+            amount: amountInCents,
+            currency: 'USD',
+            receipt: internalOrderId,
+            payment_capture: 1, // Automatically capture payment
+        };
 
-        return NextResponse.json(response.data);
+        const razorpayOrder = await razorpay.orders.create(options);
 
+        // Return both Razorpay order id and our internal order id
+        return NextResponse.json({
+            id: razorpayOrder.id,
+            currency: razorpayOrder.currency,
+            amount: razorpayOrder.amount, // this is in cents now
+            internalOrderId: internalOrderId,
+            key_id: key_id // send to frontend for initialization
+        });
 
     } catch (error: any) {
-        const errorData = error.response?.data || error.message;
-        console.error('NowPayments API Error:', JSON.stringify(errorData, null, 2));
-
+        console.error('Razorpay API Error:', error);
         return NextResponse.json(
             {
                 error: 'Failed to create payment',
-                details: typeof errorData === 'object' ? errorData.message || JSON.stringify(errorData) : errorData
+                details: error.message || 'Error communicating with Razorpay'
             },
             { status: 500 }
         );
