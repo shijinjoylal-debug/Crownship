@@ -13,7 +13,11 @@ export async function POST(req: Request) {
             internalOrderId
         } = body;
 
-        const key_secret = process.env.RAZORPAY_KEY_SECRET || 'qS4FLeWSvFf5SuI7iTq6eJBA';
+        const key_secret = process.env.RAZORPAY_KEY_SECRET;
+        
+        if (!key_secret) {
+             return NextResponse.json({ error: 'Server misconfiguration: missing Razorpay secret' }, { status: 500 });
+        }
 
         // Verify the signature
         const generated_signature = crypto

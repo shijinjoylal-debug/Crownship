@@ -9,8 +9,12 @@ export async function POST(req: Request) {
         const { amount, items, currency, name, email } = body;
 
         // Ensure keys are available
-        const key_id = process.env.RAZORPAY_KEY_ID || 'rzp_live_SezY5OFStlhUZS';
-        const key_secret = process.env.RAZORPAY_KEY_SECRET || 'qS4FLeWSvFf5SuI7iTq6eJBA';
+        const key_id = process.env.RAZORPAY_KEY_ID;
+        const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+        if (!key_id || !key_secret) {
+             throw new Error("Razorpay API keys are not configured in environment variables.");
+        }
 
         const razorpay = new Razorpay({
             key_id: key_id,
