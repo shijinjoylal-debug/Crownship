@@ -34,15 +34,28 @@ export async function POST(req: Request) {
             status: 'pending'
         });
 
-        console.log(`Creating Razorpay order for amount: $${amount}, currency: USD, internal_order_id: ${internalOrderId}`);
+        // Fetch real-time exchange rate, fallback to 83 if API fails
+        let EXCHANGE_RATE = 83;
+        try {
+            const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
+            const rateData = await rateRes.json();
+            if (rateData && rateData.rates && rateData.rates.INR) {
+                EXCHANGE_RATE = rateData.rates.INR;
+            }
+        } catch (err) {
+            console.error('Failed to fetch real-time exchange rate, using fallback.', err);
+        }
 
-        // Razorpay expects amount in smallest currency unit (cents for USD)
-        // Convert the decimal amount to integer cents
-        const amountInCents = Math.round(Number(amount) * 100);
+        const amountInINR = Number(amount) * EXCHANGE_RATE;
+
+        console.log(`Creating Razorpay order for amount: ₹${amountInINR} (converted from $${amount}), currency: INR, internal_order_id: ${internalOrderId}`);
+
+        // Razorpay expects amount in smallest currency unit (paise for INR)
+        const amountInPaise = Math.round(amountInINR * 100);
 
         const options = {
-            amount: amountInCents,
-            currency: 'USD',
+            amount: amountInPaise,
+            currency: 'INR',
             receipt: internalOrderId,
             payment_capture: 1, // Automatically capture payment
         };

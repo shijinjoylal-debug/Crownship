@@ -18,6 +18,18 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [exchangeRate, setExchangeRate] = useState(83);
+
+    useEffect(() => {
+        fetch('https://open.er-api.com/v6/latest/USD')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.rates && data.rates.INR) {
+                    setExchangeRate(data.rates.INR);
+                }
+            })
+            .catch(err => console.error('Failed to fetch exchange rate', err));
+    }, []);
 
     const initializeRazorpay = () => {
         return new Promise((resolve) => {
@@ -196,13 +208,18 @@ export default function CheckoutPage() {
 
                         <div className={styles.totalRow}>
                             <span>Total to Pay:</span>
-                            <span>${total}</span>
+                            <div style={{ textAlign: 'right' }}>
+                                <span>${total}</span>
+                                <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '4px' }}>
+                                    (approx. ₹{(total * exchangeRate).toFixed(2)})
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" disabled={loading} className={styles.payBtn}>
                             {loading ? 'Processing...' : `Pay Now $${total}`}
                         </button>
-                        <p className={styles.secureText}>🔒 Secure Payment via Razorpay</p>
+                        <p className={styles.secureText}>🔒 Secure Payment via Razorpay (Supports UPI)</p>
                     </form>
 
                     <div className={styles.sidebar}>
