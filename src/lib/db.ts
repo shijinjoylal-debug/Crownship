@@ -84,7 +84,7 @@ export const db = {
         getAllEmails: async () => {
             await dbConnect();
             const users = await ApprovedUserModel.find({}).lean();
-            return users.map((u: any) => u.email) as string[];
+            return users.map((u: any) => u.email).filter(Boolean) as string[];
         }
     }
 };

@@ -35,7 +35,7 @@ export default function ShopPage() {
             <header className={styles.header}>
                 <div className="container">
                     <h1 className="gradient-text">Premium Trading Tools</h1>
-                    <p className={styles.subtitle}>Equip yourself with the same technology used by institutional traders.</p>
+                    <p className={styles.subtitle}>Equip yourself with the best trading tools.</p>
                 </div>
             </header>
 

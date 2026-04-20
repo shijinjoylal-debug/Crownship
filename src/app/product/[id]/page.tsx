@@ -30,21 +30,21 @@ export default function ProductDetailPage() {
             <div className={`container ${styles.layout}`}>
                 <div className={styles.imageSection}>
                     <div className={styles.imagePlaceholder} style={{ backgroundImage: `url(${product.image})` }} />
-                    
+
                     {product.id === 'tool-1' && (
                         <div className={styles.videoContainer}>
                             <h3 className={styles.videoTitle}>System Demo</h3>
-                            <video 
-                                className={styles.productVideo} 
-                                controls 
-                                autoPlay 
-                                loop 
+                            <video
+                                className={styles.productVideo}
+                                controls
+                                autoPlay
+                                loop
                                 muted
                                 playsInline
                             >
                                 <source src="/demo_tool-1.mp4" type="video/mp4" />
                                 <p className={styles.videoFallback}>
-                                    Your browser does not support the video tag. 
+                                    Your browser does not support the video tag.
                                     <a href="/demo_tool-1.mp4">Download the video</a> instead.
                                 </p>
                             </video>
@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
 
                     <div className={styles.stockUrgency}>
                         <span className={styles.pulseDot}></span>
-                        <span><strong>High Demand:</strong> Only 2 lifetime access licenses remaining.</span>
+                        <span><strong>High Demand:</strong></span>
                     </div>
 
                     <p className={styles.description}>{product.description}</p>
