@@ -61,7 +61,7 @@ export default function Home() {
                 <div className={styles.flowContainer}>
                   {[...Array(15)].map((_, i) => (
                     <div key={i} className={styles.tradeRow}>
-                      <span className={styles.time}>14:{String(i%60).padStart(2, '0')}:{String(i * 3 % 60).padStart(2, '0')}</span>
+                      <span className={styles.time}>14:{String(i % 60).padStart(2, '0')}:{String(i * 3 % 60).padStart(2, '0')}</span>
                       <span className={i % 3 === 0 ? styles.sell : styles.buy}>
                         {i % 3 === 0 ? 'SELL' : 'BUY'}
                       </span>
@@ -71,7 +71,7 @@ export default function Home() {
                   ))}
                   {[...Array(15)].map((_, i) => (
                     <div key={`dup-${i}`} className={styles.tradeRow}>
-                      <span className={styles.time}>14:{String(i%60).padStart(2, '0')}:{String(i * 3 % 60).padStart(2, '0')}</span>
+                      <span className={styles.time}>14:{String(i % 60).padStart(2, '0')}:{String(i * 3 % 60).padStart(2, '0')}</span>
                       <span className={i % 3 === 0 ? styles.sell : styles.buy}>
                         {i % 3 === 0 ? 'SELL' : 'BUY'}
                       </span>
@@ -111,30 +111,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className={styles.testimonials}>
-        <div className="container">
-          <h2 className={styles.sectionTitle}>Don't Just Take Our Word For It</h2>
-          <div className={styles.grid}>
-            <div className={`glass-panel ${styles.testimonialCard}`}>
-              <div className={styles.stars}>★★★★★</div>
-              <p>"The latency is incredible. I'm executing trades milliseconds before the rest of the market."</p>
-              <h4>- Sarah J., Pro Trader</h4>
-            </div>
-            <div className={`glass-panel ${styles.testimonialCard}`}>
-              <div className={styles.stars}>★★★★★</div>
-              <p>"The whale tracking feature alone paid for my lifetime access in the first 2 hours."</p>
-              <h4>- Mike T., Crypto Analyst</h4>
-            </div>
-            <div className={`glass-panel ${styles.testimonialCard}`}>
-              <div className={styles.stars}>★★★★★</div>
-              <p>"Finally an institutional-grade tool available for retail. The UI is sharp and exactly what I needed."</p>
-              <h4>- David R., Quant Fund Manager</h4>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className={styles.resources}>
         <div className="container">
           <div className={styles.resourceHeader}>
@@ -143,22 +119,22 @@ export default function Home() {
           </div>
           <div className={styles.grid}>
             <div className={`glass-panel ${styles.resourceCard}`}>
-               <span className={styles.resourceTag}>Quantitative</span>
-               <h3>Predictive Models in High-Volume Markets</h3>
-               <p>How our V2 neural network filters noise to identify true institutional bias.</p>
-               <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+              <span className={styles.resourceTag}>Quantitative</span>
+              <h3>Predictive Models in High-Volume Markets</h3>
+              <p>How our V2 neural network filters noise to identify true institutional bias.</p>
+              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
-               <span className={styles.resourceTag}>Research</span>
-               <h3>Anatomy of a Buy Wall</h3>
-               <p>Deconstructing spoofing tactics and how active order flow analysis exposes true intent.</p>
-               <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+              <span className={styles.resourceTag}>Research</span>
+              <h3>Anatomy of a Buy Wall</h3>
+              <p>Deconstructing spoofing tactics and how active order flow analysis exposes true intent.</p>
+              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
-               <span className={styles.resourceTag}>Updates</span>
-               <h3>Q3 Infrastructure Upgrades</h3>
-               <p>New colocation nodes deployed, reducing median latency by an additional 1.4ms.</p>
-               <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+              <span className={styles.resourceTag}>Updates</span>
+              <h3>Q3 Infrastructure Upgrades</h3>
+              <p>New colocation nodes deployed, reducing median latency by an additional 1.4ms.</p>
+              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
             </div>
           </div>
         </div>
