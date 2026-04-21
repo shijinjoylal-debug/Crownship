@@ -122,19 +122,19 @@ export default function Home() {
               <span className={styles.resourceTag}>Quantitative</span>
               <h3>Predictive Models in High-Volume Markets</h3>
               <p>How our V2 neural network filters noise to identify true institutional bias.</p>
-              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
               <span className={styles.resourceTag}>Research</span>
               <h3>Anatomy of a Buy Wall</h3>
               <p>Deconstructing spoofing tactics and how active order flow analysis exposes true intent.</p>
-              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
               <span className={styles.resourceTag}>Updates</span>
               <h3>Q3 Infrastructure Upgrades</h3>
               <p>New colocation nodes deployed, reducing median latency by an additional 1.4ms.</p>
-              <Link href="#" className={styles.resourceLink}>Read Report →</Link>
+
             </div>
           </div>
         </div>
