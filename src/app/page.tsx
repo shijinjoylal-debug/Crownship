@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import styles from './page.module.css';
 
+import FloatingContact from '@/components/FloatingContact';
+
 export default function Home() {
   return (
     <div className={styles.page}>
@@ -139,6 +141,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <FloatingContact />
     </div>
   );
 }
