@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
+
 import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
@@ -18,13 +20,22 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="urgency-banner">
-            ⚡ FLASH RUN: 40% OFF ALL TOOLS. ENDS IN 04:15:30.
+            ⚡ FLASH RUN: 40% OFF ALL TOOLS.
           </div>
           <Navbar />
           <main style={{ minHeight: 'calc(100vh - 120px)', paddingTop: '120px' }}>
             {children}
           </main>
         </Providers>
+        <footer style={{ padding: '40px 0', borderTop: '1px solid var(--glass-border)', marginTop: '60px' }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'center', gap: '40px', listStyle: 'none' }}>
+            <Link href="/terms-of-service" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms of Service</Link>
+            <Link href="/privacy-policy" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy Policy</Link>
+            <Link href="/risk-disclaimer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Risk Disclaimer</Link>
+          </div>
+        </footer>
+
+
       </body>
     </html>
   );
