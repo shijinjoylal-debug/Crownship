@@ -160,7 +160,7 @@ export default function CheckoutPage() {
                 <div className="container">
                     <div className={styles.checkIcon}>✓</div>
                     <h1>Payment Successful</h1>
-                    <p>Your access keys have been sent to your email.</p>
+                    <p>Your purchase has been processed successfully. Check your email(DM) for tool activation.</p>
                     <button onClick={() => router.push('/shop')} className="btn-primary" style={{ marginTop: '20px' }}>
                         Continue Shopping
                     </button>
