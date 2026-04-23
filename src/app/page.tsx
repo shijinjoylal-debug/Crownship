@@ -46,8 +46,8 @@ export default function Home() {
                   <span className={styles.statLabel}>Active Traders</span>
                 </div>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>94%</span>
-                  <span className={styles.statLabel}>Success Rate</span>
+                  <span className={styles.statValue}>70%</span>
+                  <span className={styles.statLabel}>Approximate Success Rate</span>
                 </div>
               </div>
             </div>
