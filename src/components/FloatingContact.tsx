@@ -1,11 +1,39 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styles from './FloatingContact.module.css';
 
 const FloatingContact = () => {
+    const contactRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const footer = document.querySelector('footer');
+            if (footer && contactRef.current) {
+                const footerRect = footer.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                if (footerRect.top < windowHeight) {
+                    const overlap = windowHeight - footerRect.top;
+                    const baseBottom = window.innerWidth <= 768 ? 20 : 30;
+                    contactRef.current.style.bottom = `${baseBottom + overlap}px`;
+                } else {
+                    contactRef.current.style.bottom = '';
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+        handleScroll();
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, []);
+
     return (
-        <div className={styles.floatingContact}>
+        <div ref={contactRef} className={styles.floatingContact}>
             <p className={styles.label}>Contact Us</p>
             <a href="mailto:crownship797@gmail.com" className={styles.email}>
                 <svg 
