@@ -38,7 +38,7 @@ export default function CartPage() {
                                     <p className={styles.category}>{item.category}</p>
                                 </div>
                                 <div className={styles.pricing}>
-                                    <div className={styles.price}>${item.price}</div>
+                                    <div className={styles.price}>${item.price.toFixed(2)}</div>
                                     <div className={styles.qty}>Qty: {item.quantity}</div>
                                 </div>
                                 <button
@@ -80,7 +80,7 @@ export default function CartPage() {
 
                             <div className={styles.row}>
                                 <span>Subtotal</span>
-                                <span>${total}</span>
+                                <span>${total.toFixed(2)}</span>
                             </div>
                             <div className={styles.row}>
                                 <span>Tax (0%)</span>
@@ -89,7 +89,7 @@ export default function CartPage() {
                             <div className={styles.divider} />
                             <div className={`${styles.row} ${styles.total}`}>
                                 <span>Total</span>
-                                <span>${total}</span>
+                                <span>${total.toFixed(2)}</span>
                             </div>
 
                             <Link href="/checkout" className={`btn-primary pulse-primary ${styles.checkoutBtn}`}>

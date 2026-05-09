@@ -42,7 +42,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             <div>
                 <div style={{ fontWeight: 600 }}>{product.name}</div>
                 <div style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '4px' }}>
-                    Added to cart! (Qty: {newQuantity} • ${product.price})
+                    Added to cart! (Qty: {newQuantity} • ${product.price.toFixed(2)})
                 </div>
             </div>,
             {

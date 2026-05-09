@@ -59,7 +59,7 @@ export async function POST(req: Request) {
                 },
             });
 
-            const itemsList = order.items.map((i: any) => `- ${i.name} (Qty: ${i.quantity}) - $${i.price}`).join('\n');
+            const itemsList = order.items.map((i: any) => `- ${i.name} (Qty: ${i.quantity}) - $${i.price.toFixed(2)}`).join('\n');
             
             const mailOptions = {
                 from: process.env.GMAIL_USER,
@@ -79,7 +79,7 @@ Product Details:
 ----------------
 ${itemsList}
 
-Total Amount Paid: $${order.totalAmount}
+Total Amount Paid: $${order.totalAmount.toFixed(2)}
 
 System: Crownship
                 `,

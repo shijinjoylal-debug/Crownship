@@ -209,7 +209,7 @@ export default function CheckoutPage() {
                         <div className={styles.totalRow}>
                             <span>Total to Pay:</span>
                             <div style={{ textAlign: 'right' }}>
-                                <span>${total}</span>
+                                <span>${total.toFixed(2)}</span>
                                 <div style={{ fontSize: '0.85rem', color: '#888', marginTop: '4px' }}>
                                     (approx. ₹{(total * exchangeRate).toFixed(2)})
                                 </div>
@@ -217,7 +217,7 @@ export default function CheckoutPage() {
                         </div>
 
                         <button type="submit" disabled={loading} className={styles.payBtn}>
-                            {loading ? 'Processing...' : `Pay Now $${total}`}
+                            {loading ? 'Processing...' : `Pay Now $${total.toFixed(2)}`}
                         </button>
                         <p className={styles.secureText}>🔒 Secure Payment via Razorpay (Supports UPI)</p>
                     </form>

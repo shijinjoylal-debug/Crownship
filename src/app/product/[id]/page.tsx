@@ -59,7 +59,7 @@ export default function ProductDetailPage() {
                         <span className={styles.reviews}>4.9/5 (12,450 Reviews)</span>
                     </div>
                     <h1 className={styles.title}>{product.name}</h1>
-                    <p className={styles.price}>${product.price}</p>
+                    <p className={styles.price}>${product.price.toFixed(2)}</p>
                     <div className={styles.divider} />
 
                     <div className={styles.stockUrgency}>
@@ -76,7 +76,7 @@ export default function ProductDetailPage() {
                     </ul>
 
                     <button onClick={() => addToCart(product)} className={`btn-primary pulse-primary ${styles.buyBtn}`}>
-                        Secure Access Now — ${product.price}
+                        Secure Access Now — ${product.price.toFixed(2)}
                     </button>
 
                     <div className={styles.trustBadges}>

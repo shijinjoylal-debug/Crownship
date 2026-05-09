@@ -27,7 +27,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     High Demand: Only 2 left
                 </div>
                 <div className={styles.footer}>
-                    <span className={styles.price}>${product.price}</span>
+                    <span className={styles.price}>${product.price.toFixed(2)}</span>
                     <div className={styles.actions}>
                         <Link href={`/product/${product.id}`} className={styles.detailsBtn}>
                             View
