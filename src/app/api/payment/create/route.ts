@@ -24,14 +24,71 @@ export async function POST(req: Request) {
         // Generate a unique order ID for tracking internally
         const internalOrderId = crypto.randomUUID();
 
+        // Generate deep link activation tokens for EVERY item in respect to quantity
+        const allTelegramTokens: Array<{
+            token: string;
+            itemId: string;
+            itemName: string;
+            licenseIndex: number;
+            totalQuantity: number;
+            telegramId: null;
+            telegramUsername: null;
+            telegramConnected: boolean;
+            connectedAt: null;
+        }> = [];
+
+        const processedItems = (items || []).map((item: any) => {
+            const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+            const itemTokens: any[] = [];
+
+            for (let i = 1; i <= qty; i++) {
+                // Generate a 32-byte base64url token (approx 43 chars, well within Telegram's 64-char limit)
+                const token = crypto.randomBytes(32).toString('base64url');
+                itemTokens.push({
+                    token,
+                    telegramId: null,
+                    telegramUsername: null,
+                    telegramConnected: false,
+                    connectedAt: null,
+                });
+
+                allTelegramTokens.push({
+                    token,
+                    itemId: item.id || '',
+                    itemName: item.name || 'Trading Tool',
+                    licenseIndex: i,
+                    totalQuantity: qty,
+                    telegramId: null,
+                    telegramUsername: null,
+                    telegramConnected: false,
+                    connectedAt: null,
+                });
+            }
+
+            return {
+                id: item.id || '',
+                name: item.name || 'Trading Tool',
+                price: Number(item.price) || 0,
+                quantity: qty,
+                telegramTokens: itemTokens,
+            };
+        });
+
+        // Primary telegram token for compatibility
+        const primaryTelegramToken = allTelegramTokens[0]?.token || crypto.randomBytes(32).toString('base64url');
+
         // Create a pending record in our database
         await db.purchasedUsers.create({
             id: internalOrderId,
             name: name || 'Anonymous',
             email: email || 'unknown@example.com',
-            items: items || [],
-            totalAmount: amount, // Keeping the original format amount for DB consistency
-            status: 'pending'
+            items: processedItems,
+            totalAmount: amount,
+            status: 'pending',
+            telegramToken: primaryTelegramToken,
+            telegramId: null,
+            telegramConnected: false,
+            telegramTokens: allTelegramTokens
         });
 
         // Fetch real-time exchange rate, fallback to 83 if API fails
@@ -62,13 +119,15 @@ export async function POST(req: Request) {
 
         const razorpayOrder = await razorpay.orders.create(options);
 
-        // Return both Razorpay order id and our internal order id
+        // Return Razorpay order id and internal order id + telegram tokens
         return NextResponse.json({
             id: razorpayOrder.id,
             currency: razorpayOrder.currency,
-            amount: razorpayOrder.amount, // this is in cents now
-            internalOrderId: internalOrderId,
-            key_id: key_id // send to frontend for initialization
+            amount: razorpayOrder.amount,
+            internalOrderId,
+            telegramToken: primaryTelegramToken,
+            telegramTokens: allTelegramTokens,
+            key_id
         });
 
     } catch (error: any) {

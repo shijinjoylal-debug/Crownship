@@ -4,7 +4,7 @@ import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
 
 export default function CartPage() {
-    const { items, removeFromCart, total, clearCart } = useCart();
+    const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
 
     if (items.length === 0) {
         return (
@@ -38,8 +38,52 @@ export default function CartPage() {
                                     <p className={styles.category}>{item.category}</p>
                                 </div>
                                 <div className={styles.pricing}>
-                                    <div className={styles.price}>${item.price.toFixed(2)}</div>
-                                    <div className={styles.qty}>Qty: {item.quantity}</div>
+                                    <div className={styles.price}>${(item.price * item.quantity).toFixed(2)}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            style={{
+                                                width: '26px',
+                                                height: '26px',
+                                                borderRadius: '4px',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                color: '#fff',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '14px'
+                                            }}
+                                            aria-label="Decrease quantity"
+                                        >
+                                            -
+                                        </button>
+                                        <span style={{ fontSize: '0.9rem', minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>
+                                            {item.quantity}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            style={{
+                                                width: '26px',
+                                                height: '26px',
+                                                borderRadius: '4px',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                color: '#fff',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '14px'
+                                            }}
+                                            aria-label="Increase quantity"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => removeFromCart(item.id)}

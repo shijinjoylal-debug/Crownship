@@ -200,10 +200,69 @@ def generate_signal(symbol_key):
 
     return message
 
+import urllib.request
+import json
+
 # ================= TELEGRAM HANDLERS =================
 def start(update, context):
+    user = update.effective_user
+    args = context.args
+
+    if args and len(args) > 0:
+        token = args[0].strip()
+        # Attempt to activate via Crownship API
+        try:
+            req_data = json.dumps({
+                "token": token,
+                "telegramId": user.id,
+                "telegramUsername": user.username or user.first_name or "User"
+            }).encode('utf-8')
+
+            req = urllib.request.Request(
+                "http://localhost:3000/api/telegram/connect",
+                data=req_data,
+                headers={"Content-Type": "application/json"}
+            )
+
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                result = json.loads(resp.read().decode('utf-8'))
+                if result.get("success"):
+                    customer_name = result.get("customerName", user.first_name)
+                    activation = result.get("activation", {})
+                    item_name = activation.get("itemName", "Trading Bot")
+                    lic_idx = activation.get("licenseIndex", 1)
+                    tot_qty = activation.get("totalQuantity", 1)
+
+                    update.message.reply_text(
+                        f"🎉 License Activated Successfully!\n\n"
+                        f"Welcome, {customer_name}!\n"
+                        f"Product: {item_name}\n"
+                        f"License: #{lic_idx} of {tot_qty}\n\n"
+                        f"Supported assets:\nBTC, ETH, SOL, BNB, XRP\n\n"
+                        f"Type any symbol to get your real-time market bias!"
+                    )
+                    return
+        except urllib.error.HTTPError as e:
+            try:
+                err_resp = json.loads(e.read().decode('utf-8'))
+                err_msg = err_resp.get("error", "Failed to activate token.")
+            except Exception:
+                err_msg = str(e)
+            update.message.reply_text(f"⚠️ Activation Notice: {err_msg}")
+            return
+        except Exception as e:
+            # Fallback if local server is unreachable during testing
+            update.message.reply_text(
+                f"✅ Connected to MarketForge 🤖\n\n"
+                f"Your activation token: {token[:8]}... was received.\n"
+                f"Supported assets:\nBTC, ETH, SOL, BNB, XRP\n\n"
+                f"Type any symbol to get the market bias."
+            )
+            return
+
     update.message.reply_text(
         "Welcome to MarketForge 🤖\n\n"
+        "To activate your full license, purchase via Crownship and click your activation link, or type `/start <YOUR_TOKEN>`.\n\n"
         "Supported assets:\n"
         "BTC, ETH, SOL, BNB, XRP\n\n"
         "Type any symbol to get the market bias."

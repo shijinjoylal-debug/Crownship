@@ -116,11 +116,12 @@
 }
 
 .successState {
-    height: 60vh;
+    min-height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding: 60px 0;
 }
 
 .checkIcon {

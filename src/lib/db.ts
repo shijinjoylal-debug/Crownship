@@ -78,7 +78,139 @@ export const db = {
                 { new: true }
             ).lean();
             return user as PurchasedUser | undefined;
-        }
+        },
+        getByTelegramToken: async (telegramToken: string) => {
+            await dbConnect();
+
+            const user = await PurchasedUserModel
+                .findOne({
+                    $or: [
+                        { telegramToken },
+                        { 'telegramTokens.token': telegramToken },
+                        { 'items.telegramTokens.token': telegramToken }
+                    ]
+                })
+                .lean();
+
+            return user as PurchasedUser | undefined;
+        },
+
+        connectTelegramByToken: async (
+            telegramToken: string,
+            telegramId: number,
+            telegramUsername?: string
+        ) => {
+            await dbConnect();
+
+            // First find the user record containing this token
+            const existing = await PurchasedUserModel.findOne({
+                $or: [
+                    { telegramToken },
+                    { 'telegramTokens.token': telegramToken },
+                    { 'items.telegramTokens.token': telegramToken }
+                ]
+            });
+
+            if (!existing) {
+                return null;
+            }
+
+            // Check if token in telegramTokens array
+            let matchedTokenObj = existing.telegramTokens?.find((t: any) => t.token === telegramToken);
+            if (!matchedTokenObj && existing.telegramToken === telegramToken) {
+                matchedTokenObj = {
+                    token: existing.telegramToken,
+                    telegramConnected: existing.telegramConnected,
+                    telegramId: existing.telegramId,
+                    itemName: existing.items?.[0]?.name || 'Trading Tool',
+                    licenseIndex: 1
+                };
+            }
+
+            // If already connected to another telegramId
+            if (matchedTokenObj?.telegramConnected && matchedTokenObj.telegramId && matchedTokenObj.telegramId !== telegramId) {
+                throw new Error('This license token has already been claimed by another Telegram account.');
+            }
+
+            const now = new Date();
+
+            // Update matching element in telegramTokens array
+            await PurchasedUserModel.updateOne(
+                {
+                    _id: existing._id,
+                    'telegramTokens.token': telegramToken
+                },
+                {
+                    $set: {
+                        'telegramTokens.$.telegramConnected': true,
+                        'telegramTokens.$.telegramId': telegramId,
+                        'telegramTokens.$.telegramUsername': telegramUsername || null,
+                        'telegramTokens.$.connectedAt': now
+                    }
+                }
+            );
+
+            // Also update in items.telegramTokens if present
+            await PurchasedUserModel.updateOne(
+                {
+                    _id: existing._id,
+                    'items.telegramTokens.token': telegramToken
+                },
+                {
+                    $set: {
+                        'items.$[].telegramTokens.$[tok].telegramConnected': true,
+                        'items.$[].telegramTokens.$[tok].telegramId': telegramId,
+                        'items.$[].telegramTokens.$[tok].telegramUsername': telegramUsername || null,
+                        'items.$[].telegramTokens.$[tok].connectedAt': now
+                    }
+                },
+                {
+                    arrayFilters: [{ 'tok.token': telegramToken }]
+                }
+            );
+
+            // If it's the root token, also update root fields
+            const updateRoot: any = {};
+            if (existing.telegramToken === telegramToken) {
+                updateRoot.telegramConnected = true;
+                updateRoot.telegramId = telegramId;
+            }
+
+            const updatedUser = await PurchasedUserModel.findByIdAndUpdate(
+                existing._id,
+                { $set: updateRoot },
+                { new: true }
+            ).lean();
+
+            return {
+                user: updatedUser as PurchasedUser,
+                activation: matchedTokenObj
+            };
+        },
+
+        connectTelegram: async (
+            id: string,
+            telegramId: number
+        ) => {
+            await dbConnect();
+
+            const user = await PurchasedUserModel.findOneAndUpdate(
+                {
+                    id,
+                    status: 'confirmed',
+                    telegramConnected: false
+                },
+                {
+                    telegramId,
+                    telegramConnected: true
+                },
+                {
+                    new: true
+                }
+            ).lean();
+
+            return user as PurchasedUser | undefined;
+        },
     },
     approvedUsers: {
         getAllEmails: async () => {
