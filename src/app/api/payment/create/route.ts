@@ -77,20 +77,6 @@ export async function POST(req: Request) {
         // Primary telegram token for compatibility
         const primaryTelegramToken = allTelegramTokens[0]?.token || crypto.randomBytes(32).toString('base64url');
 
-        // Create a pending record in our database
-        await db.purchasedUsers.create({
-            id: internalOrderId,
-            name: name || 'Anonymous',
-            email: email || 'unknown@example.com',
-            items: processedItems,
-            totalAmount: amount,
-            status: 'pending',
-            telegramToken: primaryTelegramToken,
-            telegramId: null,
-            telegramConnected: false,
-            telegramTokens: allTelegramTokens
-        });
-
         // Fetch real-time exchange rate, fallback to 83 if API fails
         let EXCHANGE_RATE = 83;
         try {
@@ -118,6 +104,21 @@ export async function POST(req: Request) {
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
+
+        // Create a pending record in our database with razorpayOrderId linked
+        await db.purchasedUsers.create({
+            id: internalOrderId,
+            name: name || 'Anonymous',
+            email: email || 'unknown@example.com',
+            items: processedItems,
+            totalAmount: amount,
+            status: 'pending',
+            razorpayOrderId: razorpayOrder.id,
+            telegramToken: primaryTelegramToken,
+            telegramId: null,
+            telegramConnected: false,
+            telegramTokens: allTelegramTokens
+        });
 
         // Return Razorpay order id and internal order id + telegram tokens
         return NextResponse.json({

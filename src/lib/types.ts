@@ -52,6 +52,9 @@ export interface PurchasedUser {
     totalAmount: number;
     status?: 'pending' | 'confirmed' | 'failed';
 
+    razorpayOrderId?: string | null;
+    razorpayPaymentId?: string | null;
+
     telegramToken?: string;
     telegramId?: number | null;
     telegramConnected?: boolean;

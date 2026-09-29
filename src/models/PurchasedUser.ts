@@ -35,6 +35,14 @@ const PurchasedUserSchema = new mongoose.Schema({
         type: String,
         default: 'pending',
     },
+    razorpayOrderId: {
+        type: String,
+        default: null,
+    },
+    razorpayPaymentId: {
+        type: String,
+        default: null,
+    },
     telegramToken: {
         type: String,
         default: null,

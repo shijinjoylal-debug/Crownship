@@ -70,11 +70,15 @@ export const db = {
             const user = await PurchasedUserModel.findOne({ id }).lean();
             return user as PurchasedUser | undefined;
         },
-        updateStatus: async (id: string, status: 'confirmed' | 'failed') => {
+        updateStatus: async (id: string, status: 'confirmed' | 'failed', razorpayPaymentId?: string) => {
             await dbConnect();
+            const updateFields: any = { status };
+            if (razorpayPaymentId) {
+                updateFields.razorpayPaymentId = razorpayPaymentId;
+            }
             const user = await PurchasedUserModel.findOneAndUpdate(
                 { id },
-                { status },
+                { $set: updateFields },
                 { new: true }
             ).lean();
             return user as PurchasedUser | undefined;
