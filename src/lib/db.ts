@@ -3,7 +3,8 @@ import ProductModel from '@/models/Product';
 import UserModel from '@/models/User';
 import PurchasedUserModel from '@/models/PurchasedUser';
 import ApprovedUserModel from '@/models/ApprovedUser';
-import { Product, User, PurchasedUser, ApprovedUser } from './types';
+import TelegramActivationModel from '@/models/TelegramActivation';
+import { Product, User, PurchasedUser, ApprovedUser, TelegramActivationRecord } from './types';
 
 // Ensure connection is established
 dbConnect();
@@ -211,6 +212,77 @@ export const db = {
 
             return user as PurchasedUser | undefined;
         },
+
+        updateConfirmed: async (
+            id: string,
+            updateData?: {
+                razorpayPaymentId?: string;
+                razorpayOrderId?: string;
+                razorpayAmount?: number;
+            }
+        ) => {
+            await dbConnect();
+            const setFields: any = { status: 'confirmed' };
+            if (updateData?.razorpayPaymentId) setFields.razorpayPaymentId = updateData.razorpayPaymentId;
+            if (updateData?.razorpayOrderId) setFields.razorpayOrderId = updateData.razorpayOrderId;
+            if (updateData?.razorpayAmount !== undefined) setFields.razorpayAmount = updateData.razorpayAmount;
+
+            const user = await PurchasedUserModel.findOneAndUpdate(
+                { id },
+                { $set: setFields },
+                { new: true }
+            ).lean();
+
+            return user as PurchasedUser | undefined;
+        },
+    },
+    activations: {
+        findByToken: async (token: string) => {
+            await dbConnect();
+            const act = await TelegramActivationModel.findOne({ token }).lean();
+            return act as TelegramActivationRecord | null;
+        },
+        createBatch: async (records: Array<{
+            id: string;
+            token: string;
+            orderId: string;
+            productId?: string;
+            productName: string;
+            licenseIndex: number;
+            totalQuantity: number;
+            telegramId?: number | null;
+            status: 'unused' | 'used' | 'revoked';
+            usedAt?: Date | null;
+        }>) => {
+            await dbConnect();
+            const created = await TelegramActivationModel.insertMany(records);
+            return created;
+        },
+        getByOrderId: async (orderId: string) => {
+            await dbConnect();
+            const acts = await TelegramActivationModel.find({ orderId }).sort({ licenseIndex: 1 }).lean();
+            return acts as TelegramActivationRecord[];
+        },
+        getUnusedByOrderId: async (orderId: string) => {
+            await dbConnect();
+            const acts = await TelegramActivationModel.find({ orderId, status: 'unused' }).sort({ licenseIndex: 1 }).lean();
+            return acts as TelegramActivationRecord[];
+        },
+        redeemAtomically: async (token: string, telegramId: number) => {
+            await dbConnect();
+            const updated = await TelegramActivationModel.findOneAndUpdate(
+                { token, status: 'unused' },
+                {
+                    $set: {
+                        status: 'used',
+                        telegramId,
+                        usedAt: new Date(),
+                    }
+                },
+                { new: true }
+            ).lean();
+            return updated as TelegramActivationRecord | null;
+        }
     },
     approvedUsers: {
         getAllEmails: async () => {
@@ -220,5 +292,6 @@ export const db = {
         }
     }
 };
+
 
 

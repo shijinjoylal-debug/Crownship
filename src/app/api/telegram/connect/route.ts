@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
+import dbConnect from '@/lib/mongoose';
+import TelegramActivationModel from '@/models/TelegramActivation';
+import PurchasedUserModel from '@/models/PurchasedUser';
 import { db } from '@/lib/db';
 
 export async function GET(req: Request) {
     try {
+        await dbConnect();
         const { searchParams } = new URL(req.url);
         const token = searchParams.get('token');
 
@@ -13,36 +18,37 @@ export async function GET(req: Request) {
             );
         }
 
-        const user = await db.purchasedUsers.getByTelegramToken(token);
+        const cleanToken = token.trim();
+        const activation = await TelegramActivationModel.findOne({ token: cleanToken });
 
-        if (!user || user.status !== 'confirmed') {
+        if (activation) {
+            const order = await PurchasedUserModel.findOne({ id: activation.orderId });
+            const isConfirmed = order && order.status === 'confirmed';
+
+            return NextResponse.json({
+                valid: isConfirmed && activation.status === 'unused',
+                status: activation.status,
+                orderConfirmed: isConfirmed,
+                productName: activation.productName,
+                licenseIndex: activation.licenseIndex,
+                totalQuantity: activation.totalQuantity,
+            });
+        }
+
+        // Check legacy records
+        const legacyUser = await db.purchasedUsers.getByTelegramToken(cleanToken);
+        if (!legacyUser || legacyUser.status !== 'confirmed') {
             return NextResponse.json(
                 { valid: false, error: 'Invalid or unconfirmed license token' },
                 { status: 404 }
             );
         }
 
-        // Find activation token details
-        const activation = user.telegramTokens?.find((t: any) => t.token === token) || {
-            token: user.telegramToken,
-            itemName: user.items?.[0]?.name || 'Trading Tool',
-            licenseIndex: 1,
-            totalQuantity: 1,
-            telegramConnected: !!user.telegramConnected,
-            telegramId: user.telegramId || null,
-        };
-
         return NextResponse.json({
             valid: true,
-            status: user.status,
-            customerName: user.name,
-            activation: {
-                itemName: activation.itemName,
-                licenseIndex: activation.licenseIndex,
-                totalQuantity: activation.totalQuantity || 1,
-                connected: !!activation.telegramConnected,
-                connectedTelegramId: activation.telegramId || null,
-            }
+            status: legacyUser.status,
+            customerName: legacyUser.name,
+            legacy: true,
         });
 
     } catch (error: any) {
@@ -56,47 +62,134 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { token, telegramId, telegramUsername } = body;
+        await dbConnect();
 
-        if (!token || !telegramId) {
+        // 1. Authenticate the Python bot using Authorization: Bearer <CROWNSHIP_BOT_SECRET>
+        const authHeader = req.headers.get('authorization') || '';
+        const match = authHeader.match(/^Bearer\s+(.+)$/i);
+        const providedSecret = match ? match[1].trim() : '';
+
+        const expectedSecret = process.env.CROWNSHIP_BOT_SECRET;
+        if (!expectedSecret) {
+            console.error('CROWNSHIP_BOT_SECRET is not configured on the server');
             return NextResponse.json(
-                { success: false, error: 'Token and telegramId are required' },
+                { success: false, error: 'Server misconfiguration: bot secret not configured' },
+                { status: 500 }
+            );
+        }
+
+        const providedBuf = Buffer.from(providedSecret, 'utf-8');
+        const expectedBuf = Buffer.from(expectedSecret, 'utf-8');
+
+        if (
+            providedBuf.length === 0 ||
+            providedBuf.length !== expectedBuf.length ||
+            !crypto.timingSafeEqual(providedBuf, expectedBuf)
+        ) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized: Invalid bot secret' },
+                { status: 401 }
+            );
+        }
+
+        // 2 & 3. Validate token and telegramId
+        const body = await req.json().catch(() => ({}));
+        const { token, telegramId } = body;
+
+        if (!token || typeof token !== 'string' || !token.trim()) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid or missing token' },
                 { status: 400 }
             );
         }
 
         const parsedTelegramId = Number(telegramId);
-        if (isNaN(parsedTelegramId)) {
+        if (!telegramId || isNaN(parsedTelegramId) || !Number.isSafeInteger(parsedTelegramId)) {
             return NextResponse.json(
-                { success: false, error: 'Invalid telegramId format' },
+                { success: false, error: 'Invalid or missing telegramId' },
                 { status: 400 }
             );
         }
 
-        // Check if token exists and order is confirmed
-        const existingOrder = await db.purchasedUsers.getByTelegramToken(token);
-        if (!existingOrder) {
+        const cleanToken = token.trim();
+
+        // 4. Find TelegramActivation by token
+        const activation = await TelegramActivationModel.findOne({ token: cleanToken });
+
+        if (activation) {
+            // 5. Verify activation belongs to a confirmed purchase
+            const order = await PurchasedUserModel.findOne({ id: activation.orderId });
+            if (!order || order.status !== 'confirmed') {
+                return NextResponse.json(
+                    { success: false, error: 'Activation does not belong to a confirmed purchase' },
+                    { status: 400 }
+                );
+            }
+
+            // 6. Verify activation status is unused
+            if (activation.status !== 'unused') {
+                return NextResponse.json(
+                    { success: false, error: 'This activation link is invalid or has already been used.' },
+                    { status: 400 }
+                );
+            }
+
+            // 7. Atomically mark it used and store telegramId
+            const now = new Date();
+            const updated = await TelegramActivationModel.findOneAndUpdate(
+                {
+                    token: cleanToken,
+                    status: 'unused',
+                },
+                {
+                    $set: {
+                        status: 'used',
+                        telegramId: parsedTelegramId,
+                        usedAt: now,
+                    },
+                },
+                {
+                    new: true,
+                }
+            );
+
+            // 8. Return success only if the atomic update actually matched
+            if (!updated) {
+                return NextResponse.json(
+                    { success: false, error: 'This activation link is invalid or has already been used.' },
+                    { status: 409 }
+                );
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: 'Purchase activated successfully',
+                activation: {
+                    productName: updated.productName,
+                    productId: updated.productId,
+                    licenseIndex: updated.licenseIndex,
+                    totalQuantity: updated.totalQuantity,
+                    telegramId: updated.telegramId,
+                    usedAt: updated.usedAt,
+                },
+            });
+        }
+
+        // Backward compatibility fallback for legacy orders
+        const legacyUser = await db.purchasedUsers.getByTelegramToken(cleanToken);
+        if (!legacyUser || legacyUser.status !== 'confirmed') {
             return NextResponse.json(
-                { success: false, error: 'Invalid activation token' },
+                { success: false, error: 'Invalid activation token or purchase not confirmed' },
                 { status: 404 }
             );
         }
 
-        if (existingOrder.status !== 'confirmed') {
-            return NextResponse.json(
-                { success: false, error: 'Order payment has not been confirmed yet' },
-                { status: 400 }
-            );
-        }
-
-        const result = await db.purchasedUsers.connectTelegramByToken(
-            token,
-            parsedTelegramId,
-            telegramUsername
+        const legacyResult = await db.purchasedUsers.connectTelegramByToken(
+            cleanToken,
+            parsedTelegramId
         );
 
-        if (!result) {
+        if (!legacyResult) {
             return NextResponse.json(
                 { success: false, error: 'Unable to connect Telegram account' },
                 { status: 400 }
@@ -105,23 +198,18 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             success: true,
-            message: 'Telegram account connected successfully!',
-            customerName: result.user.name,
+            message: 'Purchase activated successfully',
             activation: {
-                itemName: result.activation?.itemName || 'Trading Tool',
-                licenseIndex: result.activation?.licenseIndex || 1,
-                totalQuantity: result.activation?.totalQuantity || 1,
+                productName: legacyResult.activation?.itemName || 'Trading Tool',
                 telegramId: parsedTelegramId,
-                telegramUsername: telegramUsername || null
-            }
+            },
         });
 
     } catch (error: any) {
         console.error('Telegram connect error:', error.message);
-        const status = error.message?.includes('already been claimed') ? 409 : 500;
         return NextResponse.json(
-            { success: false, error: error.message || 'Failed to connect Telegram' },
-            { status }
+            { success: false, error: error.message || 'Internal server error' },
+            { status: 500 }
         );
     }
 }

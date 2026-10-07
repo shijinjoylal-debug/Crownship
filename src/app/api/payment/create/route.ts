@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import { db } from '@/lib/db';
+import ProductModel from '@/models/Product';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { amount, items, currency, name, email } = body;
+        const { items, name, email } = body;
 
         // Ensure keys are available
         const key_id = process.env.RAZORPAY_KEY_ID;
         const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
         if (!key_id || !key_secret) {
-             throw new Error("Razorpay API keys are not configured in environment variables.");
+            throw new Error("Razorpay API keys are not configured in environment variables.");
         }
 
         const razorpay = new Razorpay({
@@ -21,75 +22,70 @@ export async function POST(req: Request) {
             key_secret: key_secret,
         });
 
-        // Generate a unique order ID for tracking internally
-        const internalOrderId = crypto.randomUUID();
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return NextResponse.json(
+                { error: 'No items in cart' },
+                { status: 400 }
+            );
+        }
 
-        // Generate deep link activation tokens for EVERY item in respect to quantity
-        const allTelegramTokens: Array<{
-            token: string;
-            itemId: string;
-            itemName: string;
-            licenseIndex: number;
-            totalQuantity: number;
-            telegramId: null;
-            telegramUsername: null;
-            telegramConnected: boolean;
-            connectedAt: null;
+        // Recalculate price server-side from ProductModel to prevent client-side tampering
+        let calculatedTotalUSD = 0;
+        const processedItems: Array<{
+            id: string;
+            name: string;
+            price: number;
+            quantity: number;
         }> = [];
 
-        const processedItems = (items || []).map((item: any) => {
-            const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
-            const itemTokens: any[] = [];
+        for (const rawItem of items) {
+            const qty = Math.max(1, parseInt(String(rawItem.quantity), 10) || 1);
+            let unitPrice = 0;
+            let productName = rawItem.name || 'Trading Tool';
+            let productId = rawItem.id || '';
 
-            for (let i = 1; i <= qty; i++) {
-                // Generate a 32-byte base64url token (approx 43 chars, well within Telegram's 64-char limit)
-                const token = crypto.randomBytes(32).toString('base64url');
-                itemTokens.push({
-                    token,
-                    telegramId: null,
-                    telegramUsername: null,
-                    telegramConnected: false,
-                    connectedAt: null,
-                });
-
-                allTelegramTokens.push({
-                    token,
-                    itemId: item.id || '',
-                    itemName: item.name || 'Trading Tool',
-                    licenseIndex: i,
-                    totalQuantity: qty,
-                    telegramId: null,
-                    telegramUsername: null,
-                    telegramConnected: false,
-                    connectedAt: null,
-                });
+            // Search product in database
+            let dbProduct: any = null;
+            if (productId) {
+                dbProduct = await ProductModel.findOne({
+                    $or: [
+                        { id: productId },
+                        { id: productId.trim() }
+                    ]
+                }).lean();
+            }
+            if (!dbProduct && rawItem.name) {
+                dbProduct = await ProductModel.findOne({ name: rawItem.name }).lean();
             }
 
-            return {
-                id: item.id || '',
-                name: item.name || 'Trading Tool',
-                price: Number(item.price) || 0,
+            if (dbProduct) {
+                unitPrice = Number(dbProduct.price);
+                productName = dbProduct.name;
+                productId = dbProduct.id || dbProduct[' id'] || productId;
+            } else {
+                // Safe fallback to client unit price if positive
+                unitPrice = Math.max(0, Number(rawItem.price) || 0);
+            }
+
+            calculatedTotalUSD += unitPrice * qty;
+
+            processedItems.push({
+                id: productId,
+                name: productName,
+                price: unitPrice,
                 quantity: qty,
-                telegramTokens: itemTokens,
-            };
-        });
+            });
+        }
 
-        // Primary telegram token for compatibility
-        const primaryTelegramToken = allTelegramTokens[0]?.token || crypto.randomBytes(32).toString('base64url');
+        if (calculatedTotalUSD <= 0) {
+            return NextResponse.json(
+                { error: 'Invalid order total' },
+                { status: 400 }
+            );
+        }
 
-        // Create a pending record in our database
-        await db.purchasedUsers.create({
-            id: internalOrderId,
-            name: name || 'Anonymous',
-            email: email || 'unknown@example.com',
-            items: processedItems,
-            totalAmount: amount,
-            status: 'pending',
-            telegramToken: primaryTelegramToken,
-            telegramId: null,
-            telegramConnected: false,
-            telegramTokens: allTelegramTokens
-        });
+        // Generate a unique order ID for tracking internally
+        const internalOrderId = crypto.randomUUID();
 
         // Fetch real-time exchange rate, fallback to 83 if API fails
         let EXCHANGE_RATE = 83;
@@ -97,37 +93,46 @@ export async function POST(req: Request) {
             const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
             const rateData = await rateRes.json();
             if (rateData && rateData.rates && rateData.rates.INR) {
-                EXCHANGE_RATE = rateData.rates.INR;
+                EXCHANGE_RATE = Number(rateData.rates.INR) || 83;
             }
         } catch (err) {
             console.error('Failed to fetch real-time exchange rate, using fallback.', err);
         }
 
-        const amountInINR = Number(amount) * EXCHANGE_RATE;
-
-        console.log(`Creating Razorpay order for amount: ₹${amountInINR} (converted from $${amount}), currency: INR, internal_order_id: ${internalOrderId}`);
-
-        // Razorpay expects amount in smallest currency unit (paise for INR)
+        const amountInINR = calculatedTotalUSD * EXCHANGE_RATE;
         const amountInPaise = Math.round(amountInINR * 100);
+
+        console.log(`Creating Razorpay order: ₹${amountInINR} (paise: ${amountInPaise}) from $${calculatedTotalUSD}, receipt: ${internalOrderId}`);
 
         const options = {
             amount: amountInPaise,
             currency: 'INR',
             receipt: internalOrderId,
-            payment_capture: 1, // Automatically capture payment
+            payment_capture: 1 as const,
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
 
-        // Return Razorpay order id and internal order id + telegram tokens
+        // Store the order in MongoDB with pending status, Razorpay order ID, and amount
+        await db.purchasedUsers.create({
+            id: internalOrderId,
+            name: name || 'Anonymous',
+            email: email || 'unknown@example.com',
+            items: processedItems,
+            totalAmount: calculatedTotalUSD,
+            razorpayOrderId: razorpayOrder.id,
+            razorpayAmount: Number(razorpayOrder.amount),
+            currency: razorpayOrder.currency || 'INR',
+            status: 'pending',
+        });
+
+        // Return Razorpay order id and internal order id
         return NextResponse.json({
             id: razorpayOrder.id,
             currency: razorpayOrder.currency,
             amount: razorpayOrder.amount,
             internalOrderId,
-            telegramToken: primaryTelegramToken,
-            telegramTokens: allTelegramTokens,
-            key_id
+            key_id,
         });
 
     } catch (error: any) {

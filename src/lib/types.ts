@@ -44,6 +44,21 @@ export interface TelegramActivation {
     link?: string;
 }
 
+export interface TelegramActivationRecord {
+    id: string;
+    token: string;
+    orderId: string;
+    productId?: string;
+    productName: string;
+    licenseIndex?: number;
+    totalQuantity?: number;
+    telegramId?: number | null;
+    status: 'unused' | 'used' | 'revoked';
+    usedAt?: Date | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
 export interface PurchasedUser {
     id: string;
     name: string;
@@ -51,6 +66,10 @@ export interface PurchasedUser {
     items: CartItem[];
     totalAmount: number;
     status?: 'pending' | 'confirmed' | 'failed';
+    razorpayOrderId?: string | null;
+    razorpayPaymentId?: string | null;
+    razorpayAmount?: number | null;
+    currency?: string;
 
     telegramToken?: string;
     telegramId?: number | null;

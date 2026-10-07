@@ -10,6 +10,11 @@ declare global {
     }
 }
 
+interface ActivationItem {
+    productName: string;
+    activationUrl: string;
+}
+
 export default function CheckoutPage() {
     const { items, total, clearCart } = useCart();
     const router = useRouter();
@@ -19,30 +24,25 @@ export default function CheckoutPage() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [exchangeRate, setExchangeRate] = useState(83);
-    const [telegramLink, setTelegramLink] = useState('');
-    const [telegramLinks, setTelegramLinks] = useState<Array<{
-        token: string;
-        itemId?: string;
-        itemName: string;
-        licenseIndex: number;
-        totalQuantity: number;
-        link: string;
-    }>>([]);
-    const [copiedToken, setCopiedToken] = useState<string | null>(null);
+    const [activations, setActivations] = useState<ActivationItem[]>([]);
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
     useEffect(() => {
         fetch('https://open.er-api.com/v6/latest/USD')
             .then(res => res.json())
             .then(data => {
                 if (data && data.rates && data.rates.INR) {
-                    setExchangeRate(data.rates.INR);
+                    setExchangeRate(Number(data.rates.INR) || 83);
                 }
             })
             .catch(err => console.error('Failed to fetch exchange rate', err));
     }, []);
 
     const initializeRazorpay = () => {
-        return new Promise((resolve) => {
+        return new Promise<boolean>((resolve) => {
+            if (window.Razorpay) {
+                return resolve(true);
+            }
             const script = document.createElement('script');
             script.src = 'https://checkout.razorpay.com/v1/checkout.js';
             script.onload = () => {
@@ -55,11 +55,11 @@ export default function CheckoutPage() {
         });
     };
 
-    const handleCopy = (token: string, link: string) => {
+    const handleCopy = (link: string, index: number) => {
         if (navigator?.clipboard?.writeText) {
             navigator.clipboard.writeText(link);
-            setCopiedToken(token);
-            setTimeout(() => setCopiedToken(null), 2500);
+            setCopiedIndex(index);
+            setTimeout(() => setCopiedIndex(null), 2500);
         }
     };
 
@@ -69,13 +69,13 @@ export default function CheckoutPage() {
         setError(null);
 
         try {
-            // Load razorpay script
-            const res = await initializeRazorpay();
-            if (!res) {
-                throw new Error("Razorpay SDK failed to load. Are you online?");
+            // Load Razorpay SDK
+            const sdkLoaded = await initializeRazorpay();
+            if (!sdkLoaded) {
+                throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
             }
 
-            // Call our internal API to create a payment invoice/order
+            // Call our internal API to create a payment order
             const response = await fetch('/api/payment/create', {
                 method: 'POST',
                 headers: {
@@ -87,7 +87,7 @@ export default function CheckoutPage() {
                         id: i.id,
                         name: i.name,
                         price: i.price,
-                        quantity: i.quantity
+                        quantity: i.quantity,
                     })),
                     name,
                     email,
@@ -97,11 +97,10 @@ export default function CheckoutPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.details || 'Payment creation failed');
+                throw new Error(data.details || data.error || 'Payment creation failed');
             }
 
             if (data.id) {
-                // Initialize Razorpay
                 const options = {
                     key: data.key_id,
                     amount: data.amount,
@@ -109,7 +108,7 @@ export default function CheckoutPage() {
                     name: "Crownship",
                     description: `Order for ${items.length} item(s)`,
                     order_id: data.id,
-                    handler: async function (response: any) {
+                    handler: async function (paymentResponse: any) {
                         try {
                             setLoading(true);
                             // Verify payment on our server
@@ -119,30 +118,51 @@ export default function CheckoutPage() {
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    internalOrderId: data.internalOrderId
-                                })
+                                    razorpay_order_id: paymentResponse.razorpay_order_id,
+                                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                    razorpay_signature: paymentResponse.razorpay_signature,
+                                    internalOrderId: data.internalOrderId,
+                                }),
                             });
 
                             const verifyData = await verifyRes.json();
+
                             if (verifyRes.ok && verifyData.success) {
                                 clearCart();
-                                if (verifyData.telegramLink) {
-                                    setTelegramLink(verifyData.telegramLink);
+
+                                // Extract activations from response
+                                const receivedActivations: ActivationItem[] = [];
+                                if (Array.isArray(verifyData.activations) && verifyData.activations.length > 0) {
+                                    verifyData.activations.forEach((act: any) => {
+                                        receivedActivations.push({
+                                            productName: act.productName || 'Trading Tool',
+                                            activationUrl: act.activationUrl,
+                                        });
+                                    });
+                                } else if (Array.isArray(verifyData.telegramLinks) && verifyData.telegramLinks.length > 0) {
+                                    verifyData.telegramLinks.forEach((linkObj: any) => {
+                                        receivedActivations.push({
+                                            productName: linkObj.itemName || linkObj.productName || 'Trading Tool',
+                                            activationUrl: linkObj.link || linkObj.activationUrl,
+                                        });
+                                    });
+                                } else if (verifyData.telegramLink) {
+                                    receivedActivations.push({
+                                        productName: 'Trading Tool',
+                                        activationUrl: verifyData.telegramLink,
+                                    });
                                 }
-                                if (verifyData.telegramLinks && Array.isArray(verifyData.telegramLinks)) {
-                                    setTelegramLinks(verifyData.telegramLinks);
-                                }
+
+                                setActivations(receivedActivations);
                                 setSuccess(true);
                             } else {
-                                setError('Payment verification failed. Please contact support.');
+                                setError(verifyData.error || 'Payment verification failed. Please contact support.');
                             }
                             setLoading(false);
 
                         } catch (err: any) {
-                            setError('Verification request failed.');
+                            console.error('Verification error:', err);
+                            setError('Verification request failed. Please contact support.');
                             setLoading(false);
                         }
                     },
@@ -154,16 +174,16 @@ export default function CheckoutPage() {
                         color: "#3399cc",
                     },
                     modal: {
-                        ondismiss: function() {
+                        ondismiss: function () {
                             setLoading(false);
-                            setError("Payment cancelled by user. You can try again.");
-                        }
-                    }
+                            setError("Payment cancelled. You can try again.");
+                        },
+                    },
                 };
 
                 const paymentObject = new window.Razorpay(options);
-                paymentObject.on('payment.failed', function (response: any) {
-                    setError(`Payment failed: ${response.error.description}`);
+                paymentObject.on('payment.failed', function (failResponse: any) {
+                    setError(`Payment failed: ${failResponse.error?.description || 'Transaction error'}`);
                     setLoading(false);
                 });
                 paymentObject.open();
@@ -180,177 +200,85 @@ export default function CheckoutPage() {
     };
 
     if (success) {
-        // Group licenses by item name for display
-        const groupedLinks: { [itemName: string]: typeof telegramLinks } = {};
-        if (telegramLinks.length > 0) {
-            telegramLinks.forEach(linkObj => {
-                if (!groupedLinks[linkObj.itemName]) {
-                    groupedLinks[linkObj.itemName] = [];
-                }
-                groupedLinks[linkObj.itemName].push(linkObj);
-            });
-        }
-
         return (
             <div className={styles.successState}>
-                <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+                <div className="container" style={{ maxWidth: '750px', margin: '0 auto', padding: '20px' }}>
                     <div className={styles.checkIcon}>✓</div>
-                    <h1>Payment Successful</h1>
-                    <p style={{ color: '#aaa', fontSize: '1.05rem', marginBottom: '30px' }}>
-                        Your payment has been successfully verified. Your tool licenses are ready below:
+                    <h1 style={{ fontSize: '2.4rem', marginBottom: '10px' }}>Payment Successful</h1>
+                    <p style={{ color: '#bbb', fontSize: '1.05rem', marginBottom: '32px' }}>
+                        Your payment has been successfully verified.
                     </p>
 
-                    {telegramLinks.length > 0 ? (
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 215, 0, 0.2)',
-                            borderRadius: '16px',
-                            padding: '30px',
-                            marginBottom: '35px',
-                            textAlign: 'left'
-                        }}>
-                            <h3 style={{ fontSize: '1.4rem', color: '#FFD700', marginBottom: '8px' }}>
-                                🚀 Activate Your Tool Licenses
+                    {activations.length > 0 && (
+                        <div className={styles.activationCard}>
+                            <h3 className={styles.activationHeader}>
+                                Activate your purchased Telegram tools:
                             </h3>
-                            <p style={{ color: '#aaa', fontSize: '0.95rem', marginBottom: '25px' }}>
-                                Each item in your order includes an instant Telegram deep link activation. Click below to connect your Telegram account or copy the link to share with your team.
+                            <p className={styles.activationNotice}>
+                                Each activation link can be used once. Open one link for each Telegram account you want to activate.
                             </p>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                {Object.entries(groupedLinks).map(([productName, links]) => (
-                                    <div key={productName} style={{
-                                        background: 'rgba(0, 0, 0, 0.4)',
-                                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                                        borderRadius: '12px',
-                                        padding: '20px'
-                                    }}>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginBottom: '16px',
-                                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                                            paddingBottom: '12px'
-                                        }}>
-                                            <h4 style={{ fontSize: '1.15rem', color: '#fff', margin: 0 }}>
-                                                🤖 {productName}
-                                            </h4>
-                                            <span style={{
-                                                fontSize: '0.85rem',
-                                                background: 'rgba(255, 215, 0, 0.15)',
-                                                color: '#FFD700',
-                                                padding: '4px 12px',
-                                                borderRadius: '20px',
-                                                fontWeight: 600
-                                            }}>
-                                                {links.length} {links.length === 1 ? 'License' : 'Licenses'}
+                            <div className={styles.activationList}>
+                                {activations.map((item, idx) => (
+                                    <div key={idx} className={styles.activationItem}>
+                                        <div className={styles.activationItemInfo}>
+                                            <span className={styles.productBadge}>
+                                                Activation #{idx + 1}
                                             </span>
+                                            <h4 className={styles.activationItemName}>
+                                                {item.productName}
+                                            </h4>
                                         </div>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                            {links.map((linkItem) => (
-                                                <div key={linkItem.token} style={{
-                                                    display: 'flex',
-                                                    flexWrap: 'wrap',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    gap: '12px',
-                                                    background: 'rgba(255, 255, 255, 0.02)',
-                                                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                                                    borderRadius: '8px',
-                                                    padding: '12px 16px'
-                                                }}>
-                                                    <div>
-                                                        <div style={{ fontWeight: 600, color: '#eee', fontSize: '0.95rem' }}>
-                                                            License #{linkItem.licenseIndex} of {linkItem.totalQuantity}
-                                                        </div>
-                                                        <div style={{ fontSize: '0.8rem', color: '#777', marginTop: '2px' }}>
-                                                            Token: {linkItem.token.slice(0, 10)}...{linkItem.token.slice(-6)}
-                                                        </div>
-                                                    </div>
-
-                                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                                        <a
-                                                            href={linkItem.link}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="btn-primary"
-                                                            style={{
-                                                                padding: '8px 16px',
-                                                                fontSize: '0.9rem',
-                                                                textDecoration: 'none',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '6px'
-                                                            }}
-                                                        >
-                                                            🔗 Connect Telegram
-                                                        </a>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleCopy(linkItem.token, linkItem.link)}
-                                                            style={{
-                                                                background: copiedToken === linkItem.token ? '#10b981' : 'rgba(255, 255, 255, 0.1)',
-                                                                color: '#fff',
-                                                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                                                borderRadius: '6px',
-                                                                padding: '8px 14px',
-                                                                fontSize: '0.85rem',
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.2s ease'
-                                                            }}
-                                                        >
-                                                            {copiedToken === linkItem.token ? '✓ Copied' : '📋 Copy Link'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <div className={styles.activationActions}>
+                                            <a
+                                                href={item.activationUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={styles.activateBtn}
+                                                id={`activate-btn-${idx}`}
+                                            >
+                                                🔗 Activate Telegram Bot
+                                            </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopy(item.activationUrl, idx)}
+                                                className={styles.copyBtn}
+                                                id={`copy-btn-${idx}`}
+                                            >
+                                                {copiedIndex === idx ? '✓ Copied' : '📋 Copy Link'}
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-
-                            <p style={{
-                                marginTop: '20px',
-                                fontSize: '0.85rem',
-                                color: '#888',
-                                textAlign: 'center'
-                            }}>
-                                💡 Tip: Click <strong>Connect Telegram</strong> and press <strong>Start</strong> in Telegram to instantly complete activation.
-                            </p>
                         </div>
-                    ) : telegramLink ? (
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 215, 0, 0.2)',
-                            borderRadius: '16px',
-                            padding: '30px',
-                            marginBottom: '35px'
-                        }}>
-                            <h3 style={{ fontSize: '1.3rem', color: '#FFD700', marginBottom: '10px' }}>
-                                Activate Your Telegram Bot
-                            </h3>
-                            <p style={{ color: '#aaa', marginBottom: '20px' }}>
-                                Connect your Telegram account to activate your purchase automatically.
-                            </p>
+                    )}
+
+                    <div className={styles.supportBox}>
+                        <p style={{ margin: 0 }}>
+                            💬 Need help? WhatsApp{' '}
                             <a
-                                href={telegramLink}
+                                href="https://wa.me/919633499974"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn-primary"
-                                style={{ display: 'inline-block', padding: '12px 24px' }}
+                                className={styles.supportLink}
                             >
-                                🔗 Connect Telegram
-                            </a>
-                            <p style={{ marginTop: '12px', fontSize: '0.85rem', color: '#888' }}>
-                                Press <strong>Start</strong> in Telegram to complete activation.
-                            </p>
-                        </div>
-                    ) : null}
+                                9633499974
+                            </a>{' '}
+                            for instant reply.
+                        </p>
+                    </div>
 
-                    <button onClick={() => router.push('/shop')} className="btn-primary" style={{ marginTop: '10px' }}>
-                        Continue Shopping
-                    </button>
+                    <div style={{ marginTop: '24px' }}>
+                        <button
+                            onClick={() => router.push('/shop')}
+                            className={styles.continueBtn}
+                            id="continue-shopping-btn"
+                        >
+                            Continue Shopping
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -367,10 +295,10 @@ export default function CheckoutPage() {
 
                         <div className={styles.formGroup}>
                             <label>Full Name</label>
-                            <input 
-                                type="text" 
-                                required 
-                                placeholder="Your full name" 
+                            <input
+                                type="text"
+                                required
+                                placeholder="Your full name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                             />
@@ -378,17 +306,27 @@ export default function CheckoutPage() {
 
                         <div className={styles.formGroup}>
                             <label>Email Address</label>
-                            <input 
-                                type="email" 
-                                required 
-                                placeholder="name@example.com" 
+                            <input
+                                type="email"
+                                required
+                                placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
 
                         {error && (
-                            <div className={styles.errorMessage} style={{ color: '#ff4b4b', marginBottom: '15px', padding: '10px', background: 'rgba(255, 75, 75, 0.1)', borderRadius: '4px' }}>
+                            <div
+                                className={styles.errorMessage}
+                                style={{
+                                    color: '#ff4b4b',
+                                    marginBottom: '15px',
+                                    padding: '12px',
+                                    background: 'rgba(255, 75, 75, 0.12)',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255, 75, 75, 0.25)',
+                                }}
+                            >
                                 ⚠️ {error}
                             </div>
                         )}

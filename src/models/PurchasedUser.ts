@@ -31,6 +31,22 @@ const PurchasedUserSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    razorpayOrderId: {
+        type: String,
+        default: null,
+    },
+    razorpayPaymentId: {
+        type: String,
+        default: null,
+    },
+    razorpayAmount: {
+        type: Number,
+        default: null,
+    },
+    currency: {
+        type: String,
+        default: 'INR',
+    },
     status: {
         type: String,
         default: 'pending',
