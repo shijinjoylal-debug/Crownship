@@ -14,7 +14,13 @@ export async function POST(req: Request) {
             internalOrderId,
         } = body;
 
-        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !internalOrderId) {
+        // Validate required parameters
+        if (
+            !razorpay_order_id ||
+            !razorpay_payment_id ||
+            !razorpay_signature ||
+            !internalOrderId
+        ) {
             return NextResponse.json(
                 { error: 'Missing required payment verification parameters' },
                 { status: 400 }
