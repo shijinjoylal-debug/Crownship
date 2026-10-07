@@ -21,11 +21,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 </div>
                 <h3 className={styles.name}>{product.name}</h3>
                 <p className={styles.description}>{product.description}</p>
-                
-                <div className={styles.stockIndicator}>
-                    <span className={styles.pulseDot}></span>
-                    High Demand: Only 2 left
-                </div>
+
                 <div className={styles.footer}>
                     <span className={styles.price}>${product.price.toFixed(2)}</span>
                     <div className={styles.actions}>
