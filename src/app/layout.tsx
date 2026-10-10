@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
 import { Providers } from "@/components/Providers";
+import AdsterraAd from "@/components/AdsterraAd";
 
 export const metadata: Metadata = {
   title: "Crownship | Premium Trading Tools",
@@ -27,6 +28,7 @@ export default function RootLayout({
             {children}
           </main>
         </Providers>
+        <AdsterraAd />
         <footer style={{ padding: '40px 0', borderTop: '1px solid var(--glass-border)', marginTop: '60px' }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'center', gap: '40px', listStyle: 'none' }}>
             <Link href="/terms-of-service" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms of Service</Link>
