@@ -14,7 +14,7 @@ export default function ShopPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetch('/api/products')
+         fetch('/api/products')
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch products');
                 return res.json();

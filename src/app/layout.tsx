@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+// @ts-expect-error Next.js handles global CSS imports at runtime.
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
@@ -19,9 +20,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <div className="urgency-banner">
-            ⚡ FLASH RUN: 40% OFF ALL TOOLS.
-          </div>
           <Navbar />
           <main style={{ minHeight: 'calc(100vh - 120px)', paddingTop: '120px' }}>
             {children}

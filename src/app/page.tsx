@@ -31,24 +31,8 @@ export default function Home() {
               </div>
 
               <div className={styles.trustBadges}>
-                <span>✔️ Verified Real-Time Data</span>
+                <span>✔️ Real-Time Data</span>
                 <span>🔒 Bank-Grade Security</span>
-                <span>⭐ 4.9/5 from 12k+ Traders</span>
-              </div>
-
-              <div className={styles.heroStats}>
-                <div className={styles.stat}>
-                  <span className={styles.statValue}>$4.2B+</span>
-                  <span className={styles.statLabel}>Volume Analyzed</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statValue}>12k+</span>
-                  <span className={styles.statLabel}>Active Traders</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statValue}>70%</span>
-                  <span className={styles.statLabel}>Approximate Success Rate</span>
-                </div>
               </div>
             </div>
 
@@ -123,19 +107,19 @@ export default function Home() {
             <div className={`glass-panel ${styles.resourceCard}`}>
               <span className={styles.resourceTag}>Quantitative</span>
               <h3>Predictive Models in High-Volume Markets</h3>
-              <p>How our V2 neural network filters noise to identify true institutional bias.</p>
+              <p>Will be uploaded soon.</p>
 
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
               <span className={styles.resourceTag}>Research</span>
               <h3>Anatomy of a Buy Wall</h3>
-              <p>Deconstructing spoofing tactics and how active order flow analysis exposes true intent.</p>
+              <p>Will be uploaded soon.</p>
 
             </div>
             <div className={`glass-panel ${styles.resourceCard}`}>
               <span className={styles.resourceTag}>Updates</span>
               <h3>Q3 Infrastructure Upgrades</h3>
-              <p>New colocation nodes deployed, reducing median latency by an additional 1.4ms.</p>
+              <p>Will be uploaded soon.</p>
 
             </div>
           </div>
