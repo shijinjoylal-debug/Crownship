@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-// @ts-expect-error Next.js handles global CSS imports at runtime.
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
